@@ -91,6 +91,7 @@ namespace SilksongRandomizer.Patches
                 }
 
                 next.ToState = reward.Name;
+                next.ToFsmState = reward;
             }
         }
 

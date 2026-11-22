@@ -201,6 +201,16 @@ namespace SilksongRandomizer.Patches
                 "Msg"
             );
 
+        private static readonly PopupSource EverbloomSource =
+            new PopupSource(
+                ItemType.Everbloom,
+                "Everbloom",
+                "Memory_Red",
+                "door_wakeInRedMemory Root",
+                "Wake Up",
+                "Get Item Msg"
+            );
+
         [ThreadStatic]
         private static int randomizedMapGetDepth;
 
@@ -348,6 +358,12 @@ namespace SilksongRandomizer.Patches
             if (NeedleStrikeSource.Matches(action))
             {
                 source = NeedleStrikeSource;
+                return true;
+            }
+
+            if (EverbloomSource.Matches(action))
+            {
+                source = EverbloomSource;
                 return true;
             }
 
@@ -653,7 +669,7 @@ namespace SilksongRandomizer.Patches
 
                 // CreateUIMsgGetItem normally registers this completion
                 // event before enabling its generic prefab. Complete only the
-                // three source FSMs so skipping the false full-screen
+                // whitelisted source FSMs so skipping the false full-screen
                 // panel cannot strand their owning sequences.
                 __instance.Finish();
                 __instance.Fsm.Event(GetItemMessageEndedEvent);
