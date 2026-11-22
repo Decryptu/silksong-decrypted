@@ -38,6 +38,56 @@ With the packaged APWorld installed, run the generator from the Archipelago dire
 
 The Release plugin built with .NET SDK 9.0.321 and BepInEx 5.4.23.3, and loaded in Silksong 1.0.30000. In the two-player room, the game sent the opening Crest check, applied a Flea from a simulated check on the second Archipelago slot, and reconnected through the F3 menu. Saving and quitting to the title screen, then reopening the test save from disk, resumed gameplay with the same Archipelago slot and seed.
 
+## Map tracker smoke test
+
+On Silksong 1.0.30000, the Release plugin connected to the two-player seed `12345` on Archipelago 0.6.8. A diagnostic probe exercised the live map marker filters in the dedicated test save. The Bone Bottom spool fragment moved from Reachable to Checked after the server recorded it. After Swift Step and Cling Grip arrived, the number of visible reachable checks increased from 12 to 13. Turning off F6 logic restored the full unchecked view with a reachability filter selected. Reconnecting through F3 preserved the three mapped checked locations and the filter results.
+
+Universal Tracker v0.3.8 connected to the same local room as Hornet. After replaying the test checks that delivered Flea, Clawline, Swift Step, and Cling Grip, its `--nogui --list` output matched the live map’s Reachable filter by location name across all 13 results. The map also reported 219 blocked and one unknown unchecked location. The comparison covered the reachable lists at this progression snapshot.
+
+## Experimental shuffle generation
+
+On Archipelago 0.6.8, solo seed `12345` generated an Act 1 playthrough reaching `Goal: Victory` for each of these configurations:
+
+- Coupled entrances with `interiors`, `within_areas`, or `full` scope. The room data contained 12, 226, and 247 reciprocal pairs respectively, with matching destinations in the exported entrance layout.
+- Boss, enemy, and NPC Souls together. The room exported 13 boss, 72 enemy, and 47 NPC soul entries.
+- Skills set to `anywhere`, with ledge grab and swimming randomized, split dash and sprint, and directional variants for Swift Step, Cling Grip, Clawline, and ledge grab.
+- The soul and traversal configurations together with coupled interior entrances.
+
+The soul, traversal, and combined tests used `anywhere` for both `rosary_cache_randomization` and `shell_shard_cache_randomization`. With default cache settings, generation rejected the boss and NPC soul pool and the directional traversal pool because each required more filler slots than were available. The traversal error now points to cache or resource checks as a way to add filler.
+
+The combined configuration also generated a five-flea Flea Hunt playthrough reaching `Goal: Victory` on seed `54321`. The separate soul and traversal rooms retained the opening Crest check and identical slot data when the test client reconnected. The combined Act 1 room retained the same data after a server autosave and restart.
+
+On Silksong 1.0.30000, the five-flea seed ran in a dedicated save folder. The game sent the opening Crest check. Controlled Archipelago checks delivered the Mossgrub soul, left Cling Grip, three Progressive Swift Steps, and four Fleas. A native save followed by a full process restart and offline load restored the four Fleas, Swift Step level 3, and the recorded checks. A diagnostic probe invoked the native transitions for the coupled Marrow and Greyroot doorway (`Bone_08/door1` ↔ `Room_Witch/left1`), and both directions were recorded. After the game reconnected, the fifth Flea triggered the goal report before the server released the remaining items. The final local save recorded the goal, both explored entrances, and the tested items. The test used controlled check submissions and scene access, so natural progression through the seed and the effects of soul gating still need playtesting.
+
+### Next playtest
+
+Generate solo seed `54321` on Archipelago 0.6.8 with `--spoiler 2` and the following player YAML. Use a fresh dedicated save.
+
+```yaml
+name: Hornet
+game: 'Hollow Knight: Silksong'
+'Hollow Knight: Silksong':
+  goal: flea_hunt
+  flea_hunt_count: 5
+  boss_souls: true
+  enemy_souls: true
+  npc_souls: true
+  skill_randomization: anywhere
+  ledgegrab_ability_rando: true
+  swim_ability_rando: true
+  split_dash_and_sprint: true
+  directional_swift_step: true
+  directional_ledge_grab: true
+  directional_cling_grip: true
+  directional_clawline: true
+  entrance_randomization: coupled
+  entrance_randomization_scope: interiors
+  rosary_cache_randomization: anywhere
+  shell_shard_cache_randomization: anywhere
+```
+
+Verify that Mossgrub is absent before breaking Moss Grotto Shell Shard Cache #2. After the cache delivers its soul, revisit the room and verify that defeating Mossgrub sends the first-kill check and grants left Cling Grip. Continue through the shuffled route to five Fleas and confirm Archipelago records the goal. Use normal gameplay throughout, with scripted checks and diagnostic warps disabled.
+
 ## The Mist and Red Memory
 
 - **The Mist.** The room graph connects the Sinner’s Road (`Dust_05`) and Bilewater (`Shadow_04`) approaches to Exhaust Organ (`Dust_09`) through abstract maze traversal rules requiring Needolin, one Progressive Silkheart, and approach movement. In 1.0.30000, both approaches enter the same cap scene (`Dust_Maze_09_entrance/right1`) with `neededCorrectDoors = 7` and `restScenePoint = 3` (five Silkfly rooms plus the entrance and `Dust_Maze_crossing` rest room). `MazeController` checks Needolin ownership when assigning the ordinary correct door. Inspecting `Hero_Hornet(Clone)`’s `Silk Specials` → `Needolin Sub` FSM and live Mist rooms confirms why the one-Silkheart rule should stay: `Try Needolin` cancels whenever `Silk < 1` (`CheckIsSilkDrainDisabled` is cheat-only), each Needolin activation drains at least `1` Silk (measured `9 -> 8` on a single tap), and `Dust_Maze_09_entrance` (which has a bench), the first interior room (`correctLeft = 7`), and `Dust_Maze_crossing` contain zero enemies. Later interior rooms (`correctLeft <= 6`) spawn `Wraith(Clone)` enemies (`type=Regular`, `DoNotGiveSilk=False`), so zero-Silkheart traversal cannot start Needolin after benching or running out of Silk without backtracking outside the Mist (`Dust_05`/`Shadow_04`) or farming Wraiths. The earlier Sinner’s Road probe exit failure was caused by `TransitionPoint.TryDoTransition` rejecting triggers when Hornet is not facing or moving into the gate direction (`left`/`right`/`top`).

@@ -77,6 +77,7 @@ namespace SilksongRandomizer
         private bool mapMarkerSettingsChanged;
         private ConfigEntry<int> mapMarkerTooltipFontSize;
         private ConfigEntry<bool> showMapMarkerLogic;
+        private ConfigEntry<string> mapMarkerFilter;
         private ConfigEntry<bool> recentItemsDisplayEnabled;
         private ConfigEntry<bool> deathLinkEnabled;
         private ConfigEntry<string> deathLinkCocoon;
@@ -265,8 +266,15 @@ namespace SilksongRandomizer
                 "Show Logic (Experimental)",
                 false,
                 ModMenuOptions.Describe("Map Markers", "Show Requirements (Experimental)",
-                    "Show the requirements for a check when you focus its map marker. Toggle with F6.")
+                    "Show estimated reachability and requirements on map markers. Toggle with F6.")
             );
+            showMapMarkerLogic.SettingChanged += (_, __) =>
+                CheckMapMarkerManager.RequestCurrentMarkerStateRefresh();
+            mapMarkerFilter = Config.Bind("Map Markers", "Check Filter", "Unchecked",
+                ModMenuOptions.Describe("Map Markers", "Check Filter",
+                    "Filter map pins by check status. Reachability filters apply while F6 logic is enabled.",
+                    new AcceptableValueList<string>("Unchecked", "Reachable", "Blocked", "Unknown", "Checked")));
+            mapMarkerFilter.SettingChanged += (_, __) => mapMarkerSettingsChanged = true;
             recentItemsDisplayEnabled = Config.Bind(
                 "Recent Items Display", "Enable Recent Items Display", false,
                 ModMenuOptions.Describe("Recent Items Display", "Recent Items Display",
@@ -320,6 +328,8 @@ namespace SilksongRandomizer
 
         internal bool ShowMapMarkerLogic =>
             showMapMarkerLogic == null || showMapMarkerLogic.Value;
+
+        internal string MapMarkerFilter => mapMarkerFilter?.Value ?? "Unchecked";
 
         private void SaveSuccessfulConnectionDetails(
             string host,

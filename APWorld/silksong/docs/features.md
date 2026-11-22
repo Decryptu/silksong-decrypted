@@ -19,7 +19,9 @@ This is actively being worked on and improved.
 ### Map Markers
 The in-game map has a feature that shows all locations that are available as of the generation of your randomizer. 
 
-The map markers have provisional logic that can be display by F6, do not take these as 100% accurate instead refer to [Universal Tracker](#ut-support).
+Press F6 to toggle estimated reachability and requirements. Focus a pin to see whether each check is reachable, blocked, or has unknown reachability. A pin dims when all of its visible unchecked checks are blocked. Use [Universal Tracker](#ut-support) to cross-check reachability.
+
+In the Map Markers settings, **Check Filter** defaults to **Unchecked**. With F6 logic enabled, choose **Reachable**, **Blocked**, or **Unknown** to narrow the map to those checks. Choose **Checked** to see completed checks with known map positions, regardless of the F6 setting.
 
 ### Recent Items Display
 The randomizer is now built in with a native implementation of a display that shows the last 5 checks the player has received. 

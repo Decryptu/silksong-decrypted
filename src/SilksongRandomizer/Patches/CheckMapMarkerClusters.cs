@@ -15,8 +15,7 @@ namespace SilksongRandomizer.Patches
             SaveState state,
             MarkerRecord anchor,
             List<string> names,
-            bool visible,
-            IReadOnlyDictionary<string, MapCheckReachability> reachability
+            bool visible
         )
         {
             var groups = RandomizerPlugin.Instance?.UseCategoryMapIcons == true &&
@@ -56,7 +55,7 @@ namespace SilksongRandomizer.Patches
                 }
                 pin.LocationNames.Clear();
                 pin.LocationNames.AddRange(group);
-                RefreshMarkerState(map, state, pin, reachability);
+                RefreshMarkerState(map, state, pin);
                 pin.MarkerObject.transform.position = anchor.MarkerObject.transform.position +
                     map.transform.TransformVector(new Vector3((index - (groups.Length - 1) * 0.5f) * spacing, 0f, 0f));
                 pin.SortingOrder = anchor.SortingOrder + index * 2;

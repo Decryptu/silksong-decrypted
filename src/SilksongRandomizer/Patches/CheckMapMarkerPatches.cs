@@ -187,26 +187,16 @@ namespace SilksongRandomizer.Patches
                 return;
             }
 
-            IReadOnlyDictionary<string, MapCheckReachability>
-                reachabilityByLocation =
-                    MapLogicEvaluator.EvaluateAll(
-                        state,
-                        MarkersByLocation.Keys
-                    );
             ReachabilityByLocation.Clear();
-            foreach (KeyValuePair<string, MapCheckReachability> entry in
-                reachabilityByLocation)
+            RandomizerPlugin plugin = RandomizerPlugin.Instance;
+            if (plugin?.ShowMapMarkerLogic == true && plugin.MapMarkerFilter != "Checked")
             {
-                ReachabilityByLocation[entry.Key] = entry.Value;
+                foreach (var entry in MapLogicEvaluator.EvaluateAll(state, MarkersByLocation.Keys))
+                    ReachabilityByLocation[entry.Key] = entry.Value;
             }
             foreach (MarkerRecord marker in GetUniqueMarkers())
             {
-                RefreshMarkerState(
-                    map,
-                    state,
-                    marker,
-                    reachabilityByLocation
-                );
+                RefreshMarkerState(map, state, marker);
             }
 
             IncludeVisibleMarkersInPanBounds(map);
@@ -217,9 +207,7 @@ namespace SilksongRandomizer.Patches
         private static void RefreshMarkerState(
             GameMap map,
             SaveState state,
-            MarkerRecord marker,
-            IReadOnlyDictionary<string, MapCheckReachability>
-                reachabilityByLocation
+            MarkerRecord marker
         )
         {
             if (map == null || state == null || marker == null)
@@ -235,7 +223,7 @@ namespace SilksongRandomizer.Patches
                 marker,
                 activeLocationNames.Count > 0
             );
-            if (RefreshCategoryCluster(map, state, marker, activeLocationNames, visible, reachabilityByLocation))
+            if (RefreshCategoryCluster(map, state, marker, activeLocationNames, visible))
                 return;
             bool logicUnknown =
                 activeLocationNames.Any(locationName =>
@@ -252,10 +240,11 @@ namespace SilksongRandomizer.Patches
                 marker.Renderer.sprite = sprite;
                 SetMarkerWorldScale(marker.Renderer.transform, map, sprite);
                 bool allUnreachable =
+                    RandomizerPlugin.Instance?.ShowMapMarkerLogic == true &&
+                    RandomizerPlugin.Instance.MapMarkerFilter != "Checked" &&
                     activeLocationNames.Count > 0 &&
                     activeLocationNames.All(locationName =>
-                        reachabilityByLocation != null &&
-                        reachabilityByLocation.TryGetValue(
+                        ReachabilityByLocation.TryGetValue(
                             EnemySoulMapMarkers.LogicName(locationName, marker.Scene.Name),
                             out MapCheckReachability reachability
                         ) &&
@@ -406,41 +395,7 @@ namespace SilksongRandomizer.Patches
                     .Distinct()
                     .ToArray())
             {
-                RefreshMarkerState(
-                    map,
-                    state,
-                    marker,
-                    ReachabilityByLocation
-                );
-            }
-        }
-
-        internal static void HideCheckedLocation(string locationName)
-        {
-            GameMap map = currentMap;
-            SaveState state = SaveState.Instance;
-            string canonicalName =
-                LocationSet.GetCanonicalLocationName(locationName);
-            if (map != null &&
-                state != null &&
-                !string.IsNullOrWhiteSpace(canonicalName) &&
-                MarkersByLocation.TryGetValue(
-                    canonicalName,
-                    out List<MarkerRecord> locationMarkers
-                ))
-            {
-                foreach (MarkerRecord marker in locationMarkers.ToArray())
-                {
-                    if (marker != null)
-                    {
-                        RefreshMarkerState(
-                            map,
-                            state,
-                            marker,
-                            ReachabilityByLocation
-                        );
-                    }
-                }
+                RefreshMarkerState(map, state, marker);
             }
         }
 
@@ -526,8 +481,9 @@ namespace SilksongRandomizer.Patches
             int groupedCount = 0;
             int removedCount = 0;
 
+            bool showChecked = RandomizerPlugin.Instance?.MapMarkerFilter == "Checked";
             List<MapCheckPosition> positions =
-                CheckMapMarkerManifest.GetPositions().ToList();
+                CheckMapMarkerManifest.GetPositions(showChecked).ToList();
             List<DesiredMarker> desiredMarkers =
                 new List<DesiredMarker>();
             Dictionary<string, List<DesiredMarker>> desiredByLocation =
@@ -554,7 +510,7 @@ namespace SilksongRandomizer.Patches
                 if (
                     !state.IsLocationEnabled(canonicalName) ||
                     !state.IsLocationInSeed(canonicalName) ||
-                    state.IsLocationChecked(canonicalName))
+                    (!showChecked && state.IsLocationChecked(canonicalName)))
                 {
                     inactiveCount++;
                     continue;
@@ -991,16 +947,38 @@ namespace SilksongRandomizer.Patches
                 yield break;
             }
 
+            RandomizerPlugin plugin = RandomizerPlugin.Instance;
+            string filter = plugin?.MapMarkerFilter;
+            if (plugin?.ShowMapMarkerLogic != true && filter != "Checked")
+                filter = "Unchecked";
+
             foreach (string locationName in marker.LocationNames)
             {
-                if (state.IsLocationEnabled(locationName) &&
-                    state.IsLocationInSeed(locationName) &&
-                    !state.IsLocationChecked(locationName) &&
-                    EnemySoulMapMarkers.IsAvailable(state, locationName) &&
-                    JournalRandomization.IsMarkerAvailable(state, locationName, marker.Scene.Name))
+                if (!state.IsLocationEnabled(locationName) || !state.IsLocationInSeed(locationName))
+                    continue;
+
+                if (filter == "Checked")
                 {
-                    yield return locationName;
+                    if (state.IsLocationChecked(locationName))
+                        yield return locationName;
+                    continue;
                 }
+
+                if (state.IsLocationChecked(locationName) ||
+                    !EnemySoulMapMarkers.IsAvailable(state, locationName) ||
+                    !JournalRandomization.IsMarkerAvailable(state, locationName, marker.Scene.Name))
+                    continue;
+
+                string logicName = EnemySoulMapMarkers.LogicName(locationName, marker.Scene.Name);
+                ReachabilityByLocation.TryGetValue(logicName, out MapCheckReachability reachability);
+                if (filter switch
+                {
+                    "Reachable" => reachability == MapCheckReachability.Reachable,
+                    "Blocked" => reachability == MapCheckReachability.Unreachable,
+                    "Unknown" => reachability == MapCheckReachability.Unknown,
+                    _ => true,
+                })
+                    yield return locationName;
             }
         }
 
@@ -1555,17 +1533,15 @@ namespace SilksongRandomizer.Patches
 
             // Only the selected pin's checks go in the tooltip.
             Color outOfLogicNameColor = new Color(0.58f, 0.58f, 0.58f, 1f);
+            bool showLogic = RandomizerPlugin.Instance?.ShowMapMarkerLogic == true;
             List<LogicTooltipLine> lines = new List<LogicTooltipLine>();
             SaveState state = SaveState.Instance;
             foreach (string locationName in tooltipLocationNames)
             {
-                bool haveReachability =
-                    ReachabilityByLocation.TryGetValue(
-                        EnemySoulMapMarkers.LogicName(locationName, closest.Scene.Name),
-                        out MapCheckReachability reachability
-                    );
+                string logicName = EnemySoulMapMarkers.LogicName(locationName, closest.Scene.Name);
+                ReachabilityByLocation.TryGetValue(logicName, out MapCheckReachability reachability);
                 Color nameColor =
-                    haveReachability &&
+                    showLogic && !state.IsLocationChecked(locationName) &&
                     reachability == MapCheckReachability.Unreachable
                         ? outOfLogicNameColor
                         : Color.white;
@@ -1575,19 +1551,24 @@ namespace SilksongRandomizer.Patches
                         nameColor
                     )
                 );
-                if (RandomizerPlugin.Instance != null &&
-                    !RandomizerPlugin.Instance.ShowMapMarkerLogic)
+                if (state.IsLocationChecked(locationName))
+                {
+                    lines.Add(new LogicTooltipLine("Checked", Color.white));
+                    continue;
+                }
+                if (!showLogic)
                 {
                     continue;
                 }
+                string status = reachability switch
+                {
+                    MapCheckReachability.Reachable => "Reachable",
+                    MapCheckReachability.Unreachable => "Blocked",
+                    _ => "Reachability unknown",
+                };
+                lines.Add(new LogicTooltipLine(status, Color.white));
                 foreach (LogicTooltipLine extra in
-                    MapLogicEvaluator.Explain(
-                        state,
-                        EnemySoulMapMarkers.LogicName(locationName, closest.Scene.Name),
-                        haveReachability
-                            ? reachability
-                            : MapCheckReachability.Unknown
-                    ) ?? Array.Empty<LogicTooltipLine>())
+                    MapLogicEvaluator.Explain(state, logicName))
                 {
                     if (!string.IsNullOrWhiteSpace(extra?.Text))
                     {
@@ -1883,17 +1864,9 @@ namespace SilksongRandomizer.Patches
     [HarmonyPatch(typeof(SaveState), nameof(SaveState.CheckLocation))]
     internal static class CheckMapMarkerLocalCheckPatch
     {
-        private static void Postfix(string locationName)
+        private static void Postfix()
         {
-            CheckMapMarkerManager.HideCheckedLocation(locationName);
-            if (string.Equals(
-                    LocationSet.GetCanonicalLocationName(locationName),
-                    Archipelago.GoalLocationName,
-                    StringComparison.OrdinalIgnoreCase
-                ))
-            {
-                CheckMapMarkerManager.RequestCurrentMarkerStateRefresh();
-            }
+            CheckMapMarkerManager.RequestCurrentMarkerStateRefresh();
         }
     }
 

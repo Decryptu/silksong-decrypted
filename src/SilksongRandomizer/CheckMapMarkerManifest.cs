@@ -850,9 +850,9 @@ namespace SilksongRandomizer
             return anchors;
         }
 
-        internal static IEnumerable<MapCheckPosition> GetPositions()
+        internal static IEnumerable<MapCheckPosition> GetPositions(bool includeChecked = false)
         {
-            foreach (MapCheckPosition position in EnemySoulMapMarkers.Positions(SaveState.Instance))
+            foreach (MapCheckPosition position in EnemySoulMapMarkers.Positions(SaveState.Instance, includeChecked))
                 yield return position;
 
             foreach (MapCheckPosition position in JournalRandomization.MapPositions(StaticPositions))

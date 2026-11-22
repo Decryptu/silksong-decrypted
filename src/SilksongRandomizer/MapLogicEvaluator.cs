@@ -473,7 +473,7 @@ namespace SilksongRandomizer
                 if (!payload.Requirements.TryGetValue(
                         canonicalLocationName,
                         out LogicRequirement requirement
-                    ))
+                    ) || requirement.LogicUnknown)
                 {
                     continue;
                 }
@@ -518,9 +518,6 @@ namespace SilksongRandomizer
         private const int MaxAdjacentRooms = 2;
         private const string RoomNodePrefix = "Room Node: ";
         private const string RoomEventPrefix = "Room Event: ";
-        // Grey already used in repository. ^-^
-        private static readonly Color OutOfLogicColor =
-            new Color(0.58f, 0.58f, 0.58f, 1f);
         // Mint Green
         private static readonly Color MetLogicColor =
             new Color(0.45f, 0.92f, 0.52f, 1f);
@@ -541,15 +538,14 @@ namespace SilksongRandomizer
             internal Dictionary<string, int> Inventory;
             internal Dictionary<string, bool> AbstractValues;
             internal bool HasSilkSpear;
-            internal readonly Dictionary<(string, MapCheckReachability), IReadOnlyList<LogicTooltipLine>> Lines =
-                new Dictionary<(string, MapCheckReachability), IReadOnlyList<LogicTooltipLine>>();
+            internal readonly Dictionary<string, IReadOnlyList<LogicTooltipLine>> Lines =
+                new Dictionary<string, IReadOnlyList<LogicTooltipLine>>();
         }
 
         // This calls CollectAccessDelta and returns the lines for the logic tooltip.
         internal static IReadOnlyList<LogicTooltipLine> Explain(
             SaveState state,
-            string locationName,
-            MapCheckReachability reachability
+            string locationName
         )
         {
             List<LogicTooltipLine> lines = new List<LogicTooltipLine>();
@@ -585,26 +581,10 @@ namespace SilksongRandomizer
                     state,
                     payload
                 );
-                var key = (canonicalLocationName, reachability);
-                if (context.Lines.TryGetValue(key, out var cachedLines))
+                if (context.Lines.TryGetValue(canonicalLocationName, out var cachedLines))
                     return cachedLines;
-                if (reachability == MapCheckReachability.Reachable)
-                {
-                    lines.Add(
-                        new LogicTooltipLine("In Logic", Color.white)
-                    );
-                }
-                else if (reachability == MapCheckReachability.Unreachable)
-                {
-                    lines.Add(
-                        new LogicTooltipLine(
-                            "Out of Logic",
-                            OutOfLogicColor
-                        )
-                    );
-                }
                 lines.AddRange(CollectAccessDelta(context, group));
-                context.Lines[key] = lines;
+                context.Lines[canonicalLocationName] = lines;
             }
             catch (Exception ex)
             {

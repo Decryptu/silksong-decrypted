@@ -995,7 +995,8 @@ def replace_filler_with_innate_ability_items(
         raise OptionError(
             "Optional item randomization needs "
             f"{len(item_names)} filler rewards in the configured random "
-            f"pool but only {len(eligible_indices)} are available."
+            f"pool but only {len(eligible_indices)} are available. "
+            "Shuffle more cache or resource checks to make room for the extra items."
         )
     unrestricted_indices = [
         index

@@ -46,9 +46,10 @@ namespace SilksongRandomizer
             !SpeciesByLocation.TryGetValue(location, out string species) ||
             EnemySoulState.IsFirstKillPending(state, species) && !EnemySoulState.IsMissing(state, species);
 
-        internal static IEnumerable<MapCheckPosition> Positions(SaveState state)
+        internal static IEnumerable<MapCheckPosition> Positions(SaveState state, bool includeChecked)
         {
-            var available = new HashSet<string>(SpeciesByLocation.Keys.Where(location => IsAvailable(state, location)));
+            var available = new HashSet<string>(SpeciesByLocation.Keys.Where(location => IsAvailable(state, location) ||
+                (includeChecked && state?.IsLocationChecked(location) == true)));
             foreach (Source source in Sources.Values)
                 if (available.Contains(source.Location))
                     yield return new MapCheckPosition(source.Location, source.Scene, .5f, .5f, 1f, 1f,
