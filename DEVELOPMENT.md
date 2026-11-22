@@ -47,6 +47,11 @@ For a generation check, use the solo YAML above with `goal: act_3`, `silk_heart_
 
 The first slot 3 reload tested an outstanding item. The server had awarded Everbloom, but the local save contained only the location check. In the follow-up, the item applied after a transition to normal gameplay. A local probe invoked the game's save routine and confirmed that both the received item list and receipt history contained Everbloom. After restarting Silksong and loading slot 3 offline, `CompletedRedMemory` and `HasWhiteFlower` were already true in the starting chapel, before traversing any room exits.
 
+- **Slot 4 ritual.** A local probe supplied Act 3 prerequisites and three Old Hearts, opened the shamans’ melody dialogue, and sent the game’s talk, bench, and cinematic events. The chapel ritual reached Red Memory, and the fresh seed `12345` room logged that the Everbloom location awarded a Flea. `CompletedRedMemory` was true while `HasWhiteFlower` was false, even though the vanilla Everbloom reward popup appeared. The probe warped Hornet out after the test inputs failed to dismiss the popup. A simulated Wispfire Lantern check delivered Everbloom, and `HasWhiteFlower` became true in `Tut_05`. The game confirmed a save after delivery. The popup’s dismissal, automatic chapel return, and physical flower gate still need verification.
+- **Mist routing probe.** With Needolin granted and zero Progressive Silkhearts, a local probe used the maze controller’s correct doors and placed Hornet at their triggers. Bilewater reached Exhaust Organ. Sinner’s Road reached the final correct door, but placing Hornet at its center did not activate the exit. This did not test how much silk the normal route consumes.
+
+For the local playtest handoff, the staged game, probe source, and Archipelago rooms are under the ignored `artifacts/silksong-smoke`, `artifacts/playtest-probe`, and `artifacts/smoke-ap068` directories. The slot 4 room uses port `38283` and the seed archive in `ritual-output`. Slot 4 has already received Everbloom. Use a fresh room and a dedicated test save to repeat the before-delivery checks.
+
 For Unity research, reuse an existing ILSpy command-line installation with `ilspycmd -t <Type> <path-to-Assembly-CSharp.dll>`. Inspect individual types as needed and keep all decompiled output outside the repository.
 
 ## Contributions
