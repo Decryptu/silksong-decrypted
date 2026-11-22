@@ -3,33 +3,76 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Silksong Decrypted is an unofficial Archipelago randomizer for Hollow Knight: Silksong.">
+  <meta name="description" content="Silksong Decrypted: an unofficial Archipelago randomizer for Hollow Knight: Silksong, with a step-by-step setup checklist.">
   <title>Silksong Decrypted</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css">
+  <script src="./setup.js" defer></script>
 </head>
 <body>
-  <header class="frame">
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+    <defs>
+      <symbol id="pin" viewBox="0 0 24 24"><path d="M12 2 15 12 12 22 9 12Z M3 12h6 M15 12h6" fill="currentColor" stroke="currentColor" stroke-width="1"/></symbol>
+    </defs>
+  </svg>
+
+  <header class="bar">
     <a class="brand" href="./">Silksong Decrypted</a>
-    <nav aria-label="Project"><a href="https://github.com/Decryptu/silksong-decrypted">GitHub</a></nav>
+    <nav aria-label="Project">
+      <a href="#setup">Setup</a>
+      <a href="#status">Status</a>
+      <a href="https://github.com/Decryptu/silksong-decrypted">GitHub</a>
+    </nav>
   </header>
-  <main class="frame">
-    <section class="hero">
-      <div>
-        <h1>Silksong<br>Decrypted</h1>
-        <p>An unofficial Archipelago randomizer for Hollow Knight: Silksong. Shuffle progression across Pharloom and share items with friends in other worlds.</p>
-        <div class="links">
-          <a class="primary" href="https://github.com/Batatvideogames/silksong-archipelago-randomizer#requirements-and-installation">Play the upstream release</a>
-          <a href="https://github.com/Decryptu/silksong-decrypted/blob/main/ROADMAP.md">Read the roadmap</a>
-        </div>
-      </div>
-      <img src="./assets/logo.png" alt="" width="640" height="700">
+
+  <main>
+    <section class="title-screen">
+      <img class="crest" src="./assets/logo.png" alt="" width="640" height="700">
+      <h1>Silksong<span>Decrypted</span></h1>
+      <div class="flourish" aria-hidden="true"><i></i><svg><use href="#pin"/></svg><i></i></div>
+      <p class="lede">Randomize Hollow Knight: Silksong and share items with friends in an Archipelago multiworld.</p>
+      <ul class="menu" role="list">
+        <li><a href="#setup"><svg aria-hidden="true"><use href="#pin"/></svg>Start setup</a></li>
+        <li><a href="https://github.com/Batatvideogames/silksong-archipelago-randomizer/releases/latest"><svg aria-hidden="true"><use href="#pin"/></svg>Download release</a></li>
+        <li><a href="https://github.com/Decryptu/silksong-decrypted/blob/main/ROADMAP.md"><svg aria-hidden="true"><use href="#pin"/></svg>Roadmap</a></li>
+      </ul>
     </section>
-    <section class="status" aria-labelledby="status">
-      <h2 id="status">In development</h2>
-      <p>Silksong Decrypted builds on BatAtVideoGames’ randomizer. Our first milestones are repeatable multiworld testing, broader logic coverage, and a simpler setup.</p>
-      <a href="https://github.com/Decryptu/silksong-decrypted/issues">Follow development on GitHub</a>
+
+    <section id="setup" class="panel" aria-labelledby="setup-h">
+      <header class="panel-head">
+        <h2 id="setup-h">Setup</h2>
+        <p>Answer two questions, then tick each step. Progress stays in this browser.</p>
+        <div class="progress" aria-live="polite"><div class="track"><div class="fill" id="fill"></div></div><span id="count">0 / 0</span></div>
+      </header>
+
+      <fieldset class="choice">
+        <legend>What are you doing?</legend>
+        <label><input type="radio" name="role" value="play"><span>Joining a game</span><small>Someone else hosts and sends you a room address.</small></label>
+        <label><input type="radio" name="role" value="host"><span>Hosting a game</span><small>You generate the seed for everyone.</small></label>
+      </fieldset>
+
+      <fieldset class="choice">
+        <legend>How do you install mods?</legend>
+        <label><input type="radio" name="install" value="cogfly"><span>Cogfly</span><small>Import one profile code.</small></label>
+        <label><input type="radio" name="install" value="r2"><span>r2modman</span><small>Same code, different manager.</small></label>
+        <label><input type="radio" name="install" value="manual"><span>Manual</span><small>Copy BepInEx and the plugin yourself.</small></label>
+      </fieldset>
+
+      <ol class="steps" id="steps"></ol>
+      <p class="hint" id="hint">Choose both answers to see your steps.</p>
+      <button type="button" class="reset" id="reset">Reset progress</button>
+    </section>
+
+    <section id="status" class="panel" aria-labelledby="status-h">
+      <h2 id="status-h">Status</h2>
+      <p>In development. Built on BatAtVideoGames' randomizer. Next: repeatable multiworld tests, wider logic coverage, simpler setup.</p>
+      <ul class="menu small" role="list">
+        <li><a href="https://github.com/Decryptu/silksong-decrypted/issues"><svg aria-hidden="true"><use href="#pin"/></svg>Report a bug</a></li>
+        <li><a href="https://discord.gg/archipelago"><svg aria-hidden="true"><use href="#pin"/></svg>Get help on Discord</a></li>
+      </ul>
     </section>
   </main>
+
+  <footer class="bar foot"><span>Unofficial fan project. Not affiliated with Team Cherry.</span></footer>
 </body>
 </html>
