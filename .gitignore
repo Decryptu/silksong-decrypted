@@ -1,0 +1,59 @@
+# .NET and Visual Studio output
+[Bb]in/
+[Oo]bj/
+artifacts/
+TestResults/
+.vs/
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Python caches and test output
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Package and release output
+build/
+dist/
+outputs/
+backups/
+*.apworld
+*.dll
+*.exe
+*.pdb
+*.nupkg
+*.snupkg
+*.zip
+!/src/SilksongRandomizer/Assets/MultiworldIcons.zip
+*.rar
+*.7z
+
+# Local configuration and game paths
+.env
+.env.*
+!.env.example
+Directory.Build.props
+SilksongPath.props
+
+# Logs, saves and temporary files
+*.log
+*.randomizersave
+*.randomizerdata
+*.bak
+*.tmp
+
+# Editor and operating-system files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+Desktop.ini

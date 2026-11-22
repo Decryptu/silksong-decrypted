@@ -1,0 +1,2460 @@
+using Archipelago.MultiClient.Net.Enums;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Text;
+using System.Xml.Serialization;
+
+namespace SilksongRandomizer
+{
+    [System.Serializable]
+    public partial class SaveState
+    {
+        public const int CurrentSchemaVersion = 27;
+
+        public string nativeSaveHash = string.Empty;
+
+        public ProgressionShuffleState progressionShuffle = new ProgressionShuffleState();
+
+        public string entranceLayoutJson = "{}";
+        public HashSet<string> exploredEntrances = new HashSet<string>();
+
+        internal static readonly string[] StartWithMapsItemNames =
+        {
+            "Map: Mosslands",
+            "Map: The Marrow",
+            "Map: Deep Docks",
+            "Map: Far Fields",
+            "Map: Wormways",
+            "Map: Hunter's March",
+            "Map: Greymoor",
+            "Map: Bellhart",
+            "Map: Shellwood",
+            "Map: Blasted Steps",
+            "Map: Sinner's Road",
+            "Map: Mount Fay",
+            "Map: Sands of Karak",
+            "Map: Bilewater",
+            "Map: Weavenest Atla",
+            "Map: Grand Gate",
+            "Map: Underworks",
+            "Map: Choral Chambers",
+            "Map: Whispering Vaults",
+            "Map: Whiteward",
+            "Map: Cogwork Core",
+            "Map: Memorium",
+            "Map: High Halls",
+            "Map: The Slab",
+            "Map: Putrified Ducts",
+            "Map: The Cradle",
+            "Map: The Abyss",
+            "Map: Verdania",
+        };
+
+        private IEnumerable<string> StartingMapItemNames => StartWithMapsItemNames.Where(
+            name => name != "Map: Verdania" || goal == Archipelago.ActThreeGoal);
+
+        private static readonly HashSet<string> StartWithMapsItemNameSet =
+            new HashSet<string>(
+                StartWithMapsItemNames,
+                StringComparer.OrdinalIgnoreCase
+            );
+
+        [System.Serializable]
+        public class HintData
+        {
+            public string locationName;
+            public string user;
+            public string item;
+            public string game;
+            public ItemFlags flags;
+            public bool official;
+            public bool found;
+        }
+
+        [System.Serializable]
+        public class PurchasePriceData
+        {
+            public string key = string.Empty;
+            public int price;
+
+            public PurchasePriceData()
+            {
+            }
+
+            public PurchasePriceData(string key, int price)
+            {
+                this.key = key ?? string.Empty;
+                this.price = price;
+            }
+        }
+
+        [System.Serializable]
+        public class ItemMarkerLocationData
+        {
+            public string itemName = string.Empty;
+            public string locationName = string.Empty;
+
+            public ItemMarkerLocationData()
+            {
+            }
+
+            public ItemMarkerLocationData(
+                string itemName,
+                string locationName
+            )
+            {
+                this.itemName = itemName ?? string.Empty;
+                this.locationName = locationName ?? string.Empty;
+            }
+        }
+
+        [System.Serializable]
+        public class CrestSlotItemFlagData
+        {
+            public string locationName = string.Empty;
+            public int flags;
+
+            public CrestSlotItemFlagData()
+            {
+            }
+
+            public CrestSlotItemFlagData(
+                string locationName,
+                ItemFlags flags)
+            {
+                this.locationName = locationName ?? string.Empty;
+                this.flags = (int)flags;
+            }
+        }
+
+        public static SaveState Instance { get; set; }
+
+        // A bound save may only reconnect to this Archipelago room, slot and goal.
+        [XmlIgnore]
+        public int schemaVersion = CurrentSchemaVersion;
+        [NonSerialized]
+        [XmlIgnore]
+        private bool schemaVersionWasDeserialized;
+        [XmlElement("schemaVersion")]
+        public int SerializedSchemaVersion
+        {
+            get
+            {
+                return schemaVersion;
+            }
+            set
+            {
+                schemaVersion = value;
+                schemaVersionWasDeserialized = true;
+            }
+        }
+        public string roomSeed = string.Empty;
+        public string slotName = string.Empty;
+        public int team = -1;
+        public int slot = -1;
+        public string worldVersion = string.Empty;
+        public string goal = string.Empty;
+        public string contentScope = string.Empty;
+        public string spellingBeePhrase = string.Empty;
+        public int fleaHuntGoalCount =
+            Archipelago.DefaultFleaHuntGoalCount;
+        public string startingLocation = string.Empty;
+        public string gameMode = SteelSoulSettings.Classic;
+        public string[] steelSoulSites = Array.Empty<string>();
+        public bool startingLocationApplied;
+        public string startingCrest = string.Empty;
+        public bool slabCaptureCurrencyStored;
+        public bool splitDashAndSprint;
+        public bool directionalClingGrip;
+        public bool directionalClawline;
+        public bool directionalSwiftStep;
+        public bool swiftStepFirstRight;
+        public bool directionalLedgeGrab;
+
+        public bool ledgegrabAbilityRando;
+        public bool swimAbilityRando;
+        public string bindRandomization = "vanilla";
+        public bool randomizeNeedleUpgrades;
+        public bool startWithMaps;
+        public bool startFullyMapped;
+        public bool automaticCompass;
+        public bool randomizedBellMarkers;
+        public bool randomizedMelodyMarkers;
+        public List<ItemMarkerLocationData> randomizedItemMarkerLocations =
+            new List<ItemMarkerLocationData>();
+        [NonSerialized]
+        [XmlIgnore]
+        private Dictionary<string, string> randomizedItemMarkerLocationLookup =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        public List<CrestSlotItemFlagData> crestSlotItemFlags =
+            new List<CrestSlotItemFlagData>();
+        [NonSerialized]
+        [XmlIgnore]
+        private Dictionary<string, ItemFlags> crestSlotItemFlagLookup =
+            new Dictionary<string, ItemFlags>(
+                StringComparer.OrdinalIgnoreCase
+            );
+        public bool vogHintSettingsBound;
+        public int vogHintHistoryReadIndex;
+        public string bellwayAccess =
+            Archipelago.BellwayAccessBellBeastRequired;
+        public int hunterEvolutionCount;
+        public HashSet<string> evaVanillaRewards = new HashSet<string>();
+        public int silkAndSoulPoints = 17;
+        public string trailsEndRequirement =
+            Archipelago.TrailsEndRequirementShakraStock;
+        public string enemyRosaryMultiplier =
+            Archipelago.RosaryMultiplierVanilla;
+        public string enemyShardMultiplier =
+            Archipelago.RosaryMultiplierVanilla;
+        public string normalShopPrices = Archipelago.PriceModeVanilla;
+        public string bellwayPrices = Archipelago.PriceModeVanilla;
+        public string ventricaPrices = Archipelago.PriceModeVanilla;
+        public string benchPrices = Archipelago.PriceModeVanilla;
+        public string miscellaneousPrices = Archipelago.PriceModeVanilla;
+        public string mapPrices = Archipelago.PriceModeVanilla;
+        public string pinPrices = Archipelago.PriceModeVanilla;
+        public string upgradePrices = Archipelago.PriceModeVanilla;
+        public string donationPrices = Archipelago.PriceModeVanilla;
+        public string vogHintPrices = Archipelago.PriceModeVanilla;
+        public List<PurchasePriceData> purchasePrices =
+            new List<PurchasePriceData>();
+        [NonSerialized]
+        [XmlIgnore]
+        private Dictionary<string, int> purchasePriceLookup;
+        public bool trapDisguises;
+        public bool divingBellKeyRandomization;
+        public bool fasterDialogue;
+        public bool fasterSilkheartAnimation;
+        public string bossSoulsJson = "[]";
+        public string npcSoulsJson = "[]";
+        public string enemySoulsJson = "[]";
+        public bool alphabetMode;
+        public bool knockbackLink;
+        public bool silkLink;
+        // Retains upgraded-capacity Silk across a live network reconnect only.
+        // The game clears current Silk on a full save load, so this runtime
+        // cache is not written into the save file.
+        [NonSerialized]
+        [XmlIgnore]
+        public int silkLinkPrivateSilk = -1;
+        // Last visible linked Silk is persisted so a live reconnect can
+        // replay only the local delta which survived a failed shared-pool
+        // write. It is ignored after a full load, where the nonserialized
+        // private-Silk marker returns to -1 and vanilla clears
+        // current Silk.
+        public int silkLinkLastSyncedBalance = -1;
+        public bool rosaryLink;
+        public bool shellShardLink;
+        // Last visible linked balances let reconnect apply only currency that
+        // was genuinely earned or spent while the socket was unavailable.
+        public int rosaryLinkLastSyncedBalance = -1;
+        public int shellShardLinkLastSyncedBalance = -1;
+        // Shell Shards above the vanilla 400-capacity pouch remain local.
+        // Unlike current Silk, this currency persists across full save loads.
+        public int shellShardLinkPrivateShards = -1;
+        public bool individualRelicTurnIns;
+        public string preferredF4Hub = string.Empty;
+        public bool saunaReturnButtonUnlocked;
+        // Set only by the Bone Bottom-to-Greymoor caravan arrival
+        // sequence. Unlike CaravanTroupeLocation, this cannot be advanced by
+        // declining the ride and remains true if the troupe later relocates.
+        public bool rodeFleaCaravanToGreymoor;
+        public bool rangSongclaveBell;
+        public bool bellhomePhaseToggleUnlocked;
+        // F4 may cross the opening story boundary and make vanilla briefly
+        // assert defeatedMossMother. That synthetic state remains quarantined
+        // until Moss Mother's real boss FSM reaches its End state.
+        public bool mossMotherBypassedByBoneBottomWarp;
+        // Minimal APWorld logic graph used only to shade check-map icons.
+        // An empty payload means "unknown", never "unreachable".
+        [NonSerialized]
+        [XmlIgnore]
+        public string mapLogicPayloadJson = string.Empty;
+
+        [NonSerialized]
+        [XmlIgnore]
+        private string compressedMapLogicPayloadSource = string.Empty;
+
+        [NonSerialized]
+        [XmlIgnore]
+        private string compressedMapLogicPayload = string.Empty;
+
+        [XmlElement("mapLogicPayloadGzip")]
+        public string MapLogicPayloadGzip
+        {
+            get
+            {
+                string payload = mapLogicPayloadJson ?? string.Empty;
+                if (!ReferenceEquals(
+                        payload,
+                        compressedMapLogicPayloadSource
+                    ))
+                {
+                    compressedMapLogicPayload =
+                        CompressMapLogicPayload(payload);
+                    compressedMapLogicPayloadSource = payload;
+                }
+                return compressedMapLogicPayload;
+            }
+            set
+            {
+                compressedMapLogicPayload = value ?? string.Empty;
+                mapLogicPayloadJson = DecompressMapLogicPayload(
+                    compressedMapLogicPayload
+                );
+                compressedMapLogicPayloadSource = mapLogicPayloadJson;
+            }
+        }
+
+        internal void PrimeMapLogicPayloadCompression()
+        {
+            _ = MapLogicPayloadGzip;
+        }
+
+        private static string CompressMapLogicPayload(string payload)
+        {
+            if (string.IsNullOrEmpty(payload))
+            {
+                return string.Empty;
+            }
+
+            byte[] input = Encoding.UTF8.GetBytes(payload);
+            using (MemoryStream output = new MemoryStream())
+            {
+                using (GZipStream gzip = new GZipStream(
+                    output,
+                    CompressionLevel.Fastest,
+                    true
+                ))
+                {
+                    gzip.Write(input, 0, input.Length);
+                }
+                return Convert.ToBase64String(output.ToArray());
+            }
+        }
+
+        private static string DecompressMapLogicPayload(string payload)
+        {
+            if (string.IsNullOrEmpty(payload))
+            {
+                return string.Empty;
+            }
+
+            byte[] input = Convert.FromBase64String(payload);
+            using (MemoryStream source = new MemoryStream(input))
+            using (GZipStream gzip = new GZipStream(
+                source,
+                CompressionMode.Decompress
+            ))
+            using (MemoryStream output = new MemoryStream())
+            {
+                gzip.CopyTo(output);
+                return Encoding.UTF8.GetString(output.ToArray());
+            }
+        }
+        public RandomizationMode quillRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode compassRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode skillRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode toolRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode silkSkillRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode crestRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode evaRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode soulRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode oldHeartRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode everbloomRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode mementoRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode farsightRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode bellhomeRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode cogheartPieceRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode questCollectibleRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode materiumRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode twistedBudRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode fleaRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode crestSlotRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode maskShardRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode spoolFragmentRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode silkHeartRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode bellwayRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode ventricaRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode mapRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode needleUpgradeRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode paleOilRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode melodyRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode pinRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode relicRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode craftingKitRandomization = RandomizationMode.Anywhere;
+        public RandomizationMode minorPickupRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode loreTabletRandomization = RandomizationMode.Vanilla;
+        // Vanilla is the default when the sidecar has not yet been
+        // bound to slot data. Current rooms replace it with their configured
+        // destination-key mode during binding.
+        public RandomizationMode simpleKeyRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode memoryLocketRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode craftmetalRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode mossberryRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode pollipHeartRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode silkeaterRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode majorKeyRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode toolPouchRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode bossSanity = RandomizationMode.Anywhere;
+        public RandomizationMode journalRandomization = RandomizationMode.Vanilla;
+        public RandomizationMode bellShrineSanity = RandomizationMode.Anywhere;
+        public RandomizationMode questSanityMode = RandomizationMode.Anywhere;
+        public bool goalCompleted;
+        public int receivedItemIndex;
+        public int deathCount;
+        public int deathLinkDeathCount;
+        public List<string> receivedItemHistory = new List<string>();
+
+        public bool canDoubleJump = false;
+        public bool canChargeSlash = false;
+        public bool canSilkSoar = false;
+        public bool canWallJump = false;
+        public bool canBrolly = false;
+        public bool canDash = false;
+        public bool canSprint = false;
+        public bool canUseHarpoon = false;
+        public bool canUseNeedolin = false;
+        public bool canUseQuill = false;
+
+        // Repeatable ordered upgrades cannot be represented by receivedItems,
+        // because that collection stores unique item names.
+        public int swiftStepLevel = 0;
+        public int druidsEyeLevel = 0;
+        public int clawMirrorLevel = 0;
+        public int curveclawLevel = 0;
+        public int silkHeartLevel = 0;
+        public int needleUpgradeLevel = 0;
+        public int selectedNeedleUpgradeLevel = -1;
+        public int plinneyPaleOilSpent;
+        public bool abyssShrineVisited;
+
+        // AP tool ownership is virtual, so the native ToolItem.Unlock path
+        // does not initialize liquid amount/reserve data. These markers make
+        // that native-equivalent initialization a one-time receipt/migration
+        // operation rather than an unintended refill on every save load.
+        public bool fleaBrewInitialFillApplied;
+        public bool plasmiumPhialInitialFillApplied;
+
+
+        public bool UnlockedDocksStation;
+        public bool UnlockedBoneforestEastStation;
+        public bool UnlockedGreymoorStation;
+        public bool UnlockedBelltownStation;
+        public bool UnlockedCoralTowerStation;
+        public bool UnlockedCityStation;
+        public bool UnlockedPeakStation;
+        public bool UnlockedShellwoodStation;
+        public bool UnlockedShadowStation;
+        public bool UnlockedAqueductStation;
+        public bool canUseBeastlingCall;
+        public bool bellEaterResolved;
+
+        public bool UnlockedSongTube;
+        public bool UnlockedUnderTube;
+        public bool UnlockedCityBellwayTube;
+        public bool UnlockedHangTube;
+        public bool UnlockedEnclaveTube;
+        public bool UnlockedArboriumTube;
+
+        [NonSerialized] [XmlIgnore] public ItemSet items = new ItemSet();
+        [NonSerialized] [XmlIgnore] public LocationSet locations = new LocationSet();
+        [NonSerialized] private Location[] enabledLocationSource;
+        [NonSerialized] private Dictionary<string, Location> enabledLocations;
+
+        public HashSet<string> receivedItems = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public HashSet<string> checkedLocations = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public HashSet<string> roomLocationNames =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public List<HintData> receivedHints = new List<HintData>();
+        public SaveState()
+        {
+        }
+
+        public bool IsRoomBound
+        {
+            get
+            {
+                return !string.IsNullOrWhiteSpace(roomSeed) && team >= 0 && slot >= 0;
+            }
+        }
+
+        public bool HasWorldVersionBinding
+        {
+            get
+            {
+                return Archipelago.IsSupportedWorldVersion(worldVersion);
+            }
+        }
+
+        public bool HasGoalBinding
+        {
+            get
+            {
+                return Archipelago.IsSupportedGoal(goal) &&
+                       (
+                           !string.Equals(
+                               goal,
+                               Archipelago.FleaHuntGoal,
+                               StringComparison.Ordinal
+                           ) ||
+                           Archipelago.IsSupportedFleaHuntGoalCount(
+                               fleaHuntGoalCount
+                           )
+                       );
+            }
+        }
+
+        public bool HasStartingCrestBinding
+        {
+            get
+            {
+                return CrestNames.IsSupportedStartingCrestKey(startingCrest);
+            }
+        }
+
+        public bool HasStartingLocationBinding
+        {
+            get
+            {
+                return Archipelago.IsSupportedStartingLocation(
+                    startingLocation
+                );
+            }
+        }
+
+        [XmlIgnore]
+        public bool AllowsBellwaysBeforeBellBeast
+        {
+            get
+            {
+                return string.Equals(
+                    bellwayAccess,
+                    Archipelago.BellwayAccessRandomizedStations,
+                    StringComparison.Ordinal
+                );
+            }
+        }
+
+        [XmlIgnore]
+        public bool TrailsEndUsesOwnedMaps
+        {
+            get
+            {
+                return string.Equals(
+                    trailsEndRequirement,
+                    Archipelago.TrailsEndRequirementOwnedMaps,
+                    StringComparison.Ordinal
+                );
+            }
+        }
+
+        internal void RequireExplicitSchemaVersion()
+        {
+            if (!schemaVersionWasDeserialized)
+            {
+                throw new InvalidDataException(
+                    "Save metadata is missing the required schemaVersion " +
+                    "element."
+                );
+            }
+        }
+
+        public void InitializeAfterLoad()
+        {
+            if (schemaVersion != CurrentSchemaVersion)
+            {
+                throw new InvalidDataException(
+                    "Save metadata schema " + schemaVersion +
+                    " does not match the required schema " +
+                    CurrentSchemaVersion + "."
+                );
+            }
+            if (randomizeNeedleUpgrades &&
+                needleUpgradeRandomization == RandomizationMode.Vanilla &&
+                paleOilRandomization == RandomizationMode.Vanilla)
+            {
+                needleUpgradeRandomization = RandomizationMode.Anywhere;
+                paleOilRandomization = RandomizationMode.Anywhere;
+            }
+
+            roomSeed = roomSeed ?? string.Empty;
+            bossSoulsJson = BossSoulState.NormalizeConfiguration(bossSoulsJson);
+            npcSoulsJson = NpcSoulState.NormalizeConfiguration(npcSoulsJson);
+            enemySoulsJson = EnemySoulState.NormalizeConfiguration(enemySoulsJson);
+            progressionShuffle = progressionShuffle ?? new ProgressionShuffleState();
+            if (!string.IsNullOrEmpty(progressionShuffle.assignmentJson))
+                progressionShuffle.BindConfiguration(progressionShuffle.assignmentJson,
+                    roomSeed + ":" + team + ":" + slot);
+            slotName = slotName ?? string.Empty;
+            worldVersion = worldVersion ?? string.Empty;
+            goal = goal ?? string.Empty;
+            spellingBeePhrase = spellingBeePhrase ?? string.Empty;
+            if (string.Equals(
+                    goal,
+                    Archipelago.SpellingBeeGoal,
+                    StringComparison.Ordinal
+                ) && string.IsNullOrWhiteSpace(spellingBeePhrase))
+            {
+                spellingBeePhrase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            }
+            mapLogicPayloadJson = mapLogicPayloadJson ?? string.Empty;
+            PrimeMapLogicPayloadCompression();
+            MapLogicEvaluator.PreparePayload(this);
+            if (!Archipelago.IsSupportedFleaHuntGoalCount(
+                    fleaHuntGoalCount
+                ))
+            {
+                fleaHuntGoalCount =
+                    Archipelago.DefaultFleaHuntGoalCount;
+            }
+            startingCrest = startingCrest ?? string.Empty;
+            startingLocation = startingLocation ?? string.Empty;
+            SteelSoulSettings.Validate(gameMode, steelSoulSites);
+            preferredF4Hub = FastTravelUtil.NormalizePreferredHubKey(
+                preferredF4Hub
+            );
+            if (!Archipelago.IsSupportedBellwayAccess(bellwayAccess))
+            {
+                bellwayAccess =
+                    Archipelago.BellwayAccessBellBeastRequired;
+            }
+            if (!Archipelago.IsSupportedTrailsEndRequirement(
+                    trailsEndRequirement
+                ))
+            {
+                trailsEndRequirement =
+                    Archipelago.TrailsEndRequirementShakraStock;
+            }
+            if (!Archipelago.IsSupportedEnemyRosaryMultiplier(
+                    enemyRosaryMultiplier
+                ))
+            {
+                enemyRosaryMultiplier =
+                    Archipelago.RosaryMultiplierVanilla;
+            }
+            if (!Archipelago.IsSupportedEnemyShardMultiplier(
+                    enemyShardMultiplier
+                ))
+            {
+                enemyShardMultiplier =
+                    Archipelago.RosaryMultiplierVanilla;
+            }
+            normalShopPrices = NormalizePurchasePriceMode(
+                normalShopPrices
+            );
+            bellwayPrices = NormalizePurchasePriceMode(bellwayPrices);
+            ventricaPrices = NormalizePurchasePriceMode(ventricaPrices);
+            benchPrices = NormalizePurchasePriceMode(benchPrices);
+            miscellaneousPrices = NormalizePurchasePriceMode(miscellaneousPrices);
+            mapPrices = NormalizePurchasePriceMode(mapPrices);
+            pinPrices = NormalizePurchasePriceMode(pinPrices);
+            upgradePrices = NormalizePurchasePriceMode(upgradePrices);
+            donationPrices = NormalizePurchasePriceMode(donationPrices);
+            vogHintPrices = NormalizePurchasePriceMode(vogHintPrices);
+            SetPurchasePrices(
+                (purchasePrices ?? new List<PurchasePriceData>())
+                    .Where(entry => entry != null)
+                    .GroupBy(
+                        entry => entry.key ?? string.Empty,
+                        StringComparer.Ordinal
+                    )
+                    .Where(group =>
+                        !string.IsNullOrWhiteSpace(group.Key))
+                    .ToDictionary(
+                        group => group.Key,
+                        group => Math.Max(0, group.Last().price),
+                        StringComparer.Ordinal
+                    )
+            );
+            SetRandomizedItemMarkerLocations(
+                (randomizedItemMarkerLocations ??
+                    new List<ItemMarkerLocationData>())
+                    .Where(entry => entry != null)
+                    .Select(entry => new KeyValuePair<string, string>(
+                        entry.itemName,
+                        entry.locationName
+                    ))
+            );
+            SetCrestSlotItemFlags(
+                (crestSlotItemFlags ??
+                    new List<CrestSlotItemFlagData>())
+                    .Where(entry => entry != null)
+                    .Select(entry =>
+                        new KeyValuePair<string, ItemFlags>(
+                            entry.locationName,
+                            (ItemFlags)entry.flags
+                        ))
+            );
+            vogHintHistoryReadIndex = Math.Max(0, vogHintHistoryReadIndex);
+            receivedItems = new HashSet<string>(
+                (receivedItems ?? new HashSet<string>())
+                    .Select(ItemSet.GetCanonicalItemName),
+                StringComparer.OrdinalIgnoreCase
+            );
+            receivedItemHistory = (
+                receivedItemHistory ?? new List<string>()
+            ).Select(itemName =>
+                string.IsNullOrWhiteSpace(itemName)
+                    ? string.Empty
+                    : ItemSet.GetCanonicalItemName(itemName)
+            ).ToList();
+            silkHeartLevel = Math.Max(
+                0,
+                Math.Min(3, silkHeartLevel)
+            );
+            druidsEyeLevel = Math.Max(0, Math.Min(2, druidsEyeLevel));
+            clawMirrorLevel = Math.Max(
+                0,
+                Math.Min(2, clawMirrorLevel)
+            );
+            curveclawLevel = Math.Max(
+                0,
+                Math.Min(2, curveclawLevel)
+            );
+            swiftStepLevel = Math.Max(0, Math.Min(splitDashAndSprint && directionalSwiftStep ? 3 : 2, swiftStepLevel));
+            needleUpgradeLevel = Math.Max(
+                0,
+                Math.Min(4, needleUpgradeLevel)
+            );
+            selectedNeedleUpgradeLevel = Math.Max(-1, Math.Min(4, selectedNeedleUpgradeLevel));
+            if (splitDashAndSprint)
+            {
+                if (swiftStepLevel >= 1)
+                {
+                    canSprint = true;
+                }
+                if (swiftStepLevel >= 2)
+                {
+                    canDash = true;
+                }
+            }
+            checkedLocations = new HashSet<string>(
+                (checkedLocations ?? new HashSet<string>())
+                    .Select(LocationSet.GetCanonicalLocationName),
+                StringComparer.OrdinalIgnoreCase
+            );
+            roomLocationNames = new HashSet<string>(
+                (roomLocationNames ?? new HashSet<string>())
+                    .Select(LocationSet.GetCanonicalLocationName)
+                    .Where(name => !string.IsNullOrWhiteSpace(name)),
+                StringComparer.OrdinalIgnoreCase
+            );
+            receivedHints = receivedHints ?? new List<HintData>();
+            foreach (HintData hint in receivedHints.Where(hint => hint != null))
+            {
+                hint.locationName =
+                    LocationSet.GetCanonicalLocationName(hint.locationName);
+                if (hint.game == "Hollow Knight: Silksong")
+                    hint.item = ItemSet.GetCanonicalItemName(hint.item);
+            }
+            items = new ItemSet();
+            locations = new LocationSet();
+        }
+
+        private static string NormalizePurchasePriceMode(string mode)
+        {
+            return Archipelago.IsSupportedPurchasePriceMode(mode)
+                ? mode
+                : Archipelago.PriceModeVanilla;
+        }
+
+        private void SetPurchasePrices(
+            IEnumerable<KeyValuePair<string, int>> prices)
+        {
+            Dictionary<string, int> normalized =
+                new Dictionary<string, int>(StringComparer.Ordinal);
+            if (prices != null)
+            {
+                foreach (KeyValuePair<string, int> entry in prices)
+                {
+                    if (!string.IsNullOrWhiteSpace(entry.Key) &&
+                        entry.Value >= 0)
+                    {
+                        normalized[entry.Key] = entry.Value;
+                    }
+                }
+            }
+
+            purchasePrices = normalized
+                .OrderBy(entry => entry.Key, StringComparer.Ordinal)
+                .Select(entry => new PurchasePriceData(
+                    entry.Key,
+                    entry.Value
+                ))
+                .ToList();
+            purchasePriceLookup = normalized;
+        }
+
+        private Dictionary<string, int> GetPurchasePriceLookup()
+        {
+            if (purchasePriceLookup != null)
+            {
+                return purchasePriceLookup;
+            }
+
+            purchasePriceLookup =
+                new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (PurchasePriceData entry in
+                     purchasePrices ?? new List<PurchasePriceData>())
+            {
+                if (entry != null &&
+                    !string.IsNullOrWhiteSpace(entry.key) &&
+                    entry.price >= 0)
+                {
+                    purchasePriceLookup[entry.key] = entry.price;
+                }
+            }
+            return purchasePriceLookup;
+        }
+
+        public bool TryGetPurchasePrice(string key, out int price)
+        {
+            price = 0;
+            return !string.IsNullOrWhiteSpace(key) &&
+                   GetPurchasePriceLookup().TryGetValue(key, out price);
+        }
+
+        private bool PurchasePriceSettingsMatch(
+            Archipelago archipelago)
+        {
+            if (archipelago == null ||
+                !string.Equals(
+                    normalShopPrices,
+                    archipelago.NormalShopPrices,
+                    StringComparison.Ordinal
+                ) ||
+                !string.Equals(
+                    bellwayPrices,
+                    archipelago.BellwayPrices,
+                    StringComparison.Ordinal
+                ) ||
+                !string.Equals(
+                    ventricaPrices,
+                    archipelago.VentricaPrices,
+                    StringComparison.Ordinal
+                ) ||
+                !string.Equals(
+                    benchPrices,
+                    archipelago.BenchPrices,
+                    StringComparison.Ordinal
+                ) ||
+                !string.Equals(
+                    miscellaneousPrices,
+                    archipelago.MiscellaneousPrices,
+                    StringComparison.Ordinal
+                ) ||
+                !string.Equals(
+                    mapPrices,
+                    archipelago.MapPrices,
+                    StringComparison.Ordinal
+                ) ||
+                !string.Equals(
+                    pinPrices,
+                    archipelago.PinPrices,
+                    StringComparison.Ordinal
+                ) ||
+                !string.Equals(
+                    upgradePrices,
+                    archipelago.UpgradePrices,
+                    StringComparison.Ordinal
+                ) ||
+                !string.Equals(
+                    donationPrices,
+                    archipelago.DonationPrices,
+                    StringComparison.Ordinal
+                ) ||
+                !string.Equals(
+                    vogHintPrices,
+                    archipelago.VogHintPrices,
+                    StringComparison.Ordinal
+                ))
+            {
+                return false;
+            }
+
+            Dictionary<string, int> savedPrices =
+                GetPurchasePriceLookup();
+            IReadOnlyDictionary<string, int> roomPrices =
+                archipelago.PurchasePrices;
+            return roomPrices != null &&
+                   savedPrices.Count == roomPrices.Count &&
+                   savedPrices.All(entry =>
+                       roomPrices.TryGetValue(
+                           entry.Key,
+                           out int roomPrice
+                       ) &&
+                       roomPrice == entry.Value);
+        }
+
+        public void BindToRoom(Archipelago archipelago)
+        {
+            if (archipelago == null || !archipelago.Connected)
+            {
+                return;
+            }
+
+            roomSeed = archipelago.RoomSeed ?? string.Empty;
+            slotName = archipelago.SlotName ?? string.Empty;
+            team = archipelago.Team;
+            slot = archipelago.Slot;
+            worldVersion = archipelago.WorldVersion ?? string.Empty;
+            goal = archipelago.Goal ?? string.Empty;
+            contentScope = archipelago.ContentScope ?? string.Empty;
+            spellingBeePhrase =
+                archipelago.SpellingBeePhrase ?? string.Empty;
+            fleaHuntGoalCount = archipelago.FleaHuntGoalCount;
+            startingLocation = archipelago.StartingLocation ?? string.Empty;
+            startingCrest = archipelago.StartingCrest ?? string.Empty;
+            gameMode = archipelago.GameMode;
+            steelSoulSites = (string[])archipelago.SteelSoulSites.Clone();
+            progressionShuffle = progressionShuffle ?? new ProgressionShuffleState();
+            progressionShuffle.BindConfiguration(archipelago.ProgressionShuffleJson,
+                roomSeed + ":" + team + ":" + slot);
+            entranceLayoutJson = archipelago.EntranceLayoutJson;
+            splitDashAndSprint = archipelago.SplitDashAndSprint;
+            directionalClingGrip = archipelago.DirectionalClingGrip;
+            directionalClawline = archipelago.DirectionalClawline;
+            directionalSwiftStep = archipelago.DirectionalSwiftStep;
+            swiftStepFirstRight = archipelago.SwiftStepFirstRight;
+            directionalLedgeGrab = archipelago.DirectionalLedgeGrab;
+
+            ledgegrabAbilityRando = archipelago.LedgegrabAbilityRando;
+            swimAbilityRando = archipelago.SwimAbilityRando;
+            bindRandomization = archipelago.BindRandomization;
+            randomizeNeedleUpgrades =
+                archipelago.NeedleUpgradeRandomization != RandomizationMode.Vanilla;
+            startWithMaps = archipelago.StartWithMaps;
+            startFullyMapped = archipelago.StartFullyMapped;
+            automaticCompass = archipelago.AutomaticCompass;
+            randomizedBellMarkers =
+                archipelago.RandomizedBellMarkers;
+            randomizedMelodyMarkers =
+                archipelago.RandomizedMelodyMarkers;
+            SetRandomizedItemMarkerLocations(
+                archipelago.RandomizedItemMarkerLocations
+            );
+            SetCrestSlotItemFlags(archipelago.CrestSlotItemFlags);
+            BindVogHintSettings(archipelago);
+            bellwayAccess = archipelago.BellwayAccess;
+            silkAndSoulPoints = archipelago.SilkAndSoulPoints;
+            trailsEndRequirement = archipelago.TrailsEndRequirement;
+            enemyRosaryMultiplier =
+                archipelago.EnemyRosaryMultiplier;
+            enemyShardMultiplier =
+                archipelago.EnemyShardMultiplier;
+            normalShopPrices = archipelago.NormalShopPrices;
+            bellwayPrices = archipelago.BellwayPrices;
+            ventricaPrices = archipelago.VentricaPrices;
+            benchPrices = archipelago.BenchPrices;
+            miscellaneousPrices = archipelago.MiscellaneousPrices;
+            mapPrices = archipelago.MapPrices;
+            pinPrices = archipelago.PinPrices;
+            upgradePrices = archipelago.UpgradePrices;
+            donationPrices = archipelago.DonationPrices;
+            vogHintPrices = archipelago.VogHintPrices;
+            SetPurchasePrices(archipelago.PurchasePrices);
+            trapDisguises = archipelago.TrapDisguises;
+            divingBellKeyRandomization = archipelago.DivingBellKeyRandomization;
+            fasterDialogue = archipelago.FasterDialogue;
+            fasterSilkheartAnimation = archipelago.FasterSilkheartAnimation;
+            bossSoulsJson = archipelago.BossSoulsJson;
+            npcSoulsJson = archipelago.NpcSoulsJson;
+            enemySoulsJson = archipelago.EnemySoulsJson;
+            alphabetMode = archipelago.AlphabetMode;
+            knockbackLink = archipelago.KnockbackLink;
+            silkLink = archipelago.SilkLink;
+            rosaryLink = archipelago.RosaryLink;
+            shellShardLink = archipelago.ShellShardLink;
+            individualRelicTurnIns =
+                archipelago.IndividualRelicTurnIns;
+            mapLogicPayloadJson =
+                archipelago.MapLogicPayloadJson ?? string.Empty;
+            PrimeMapLogicPayloadCompression();
+            MapLogicEvaluator.PreparePayload(this);
+            quillRandomization = archipelago.QuillRandomization;
+            compassRandomization = archipelago.CompassRandomization;
+            skillRandomization = archipelago.SkillRandomization;
+            toolRandomization = archipelago.ToolRandomization;
+            silkSkillRandomization = archipelago.SilkSkillRandomization;
+            crestRandomization = archipelago.CrestRandomization;
+            evaRandomization = archipelago.EvaRandomization;
+            soulRandomization = archipelago.SoulRandomization;
+            oldHeartRandomization = archipelago.OldHeartRandomization;
+            everbloomRandomization = archipelago.EverbloomRandomization;
+            mementoRandomization = archipelago.MementoRandomization;
+            farsightRandomization = archipelago.FarsightRandomization;
+            bellhomeRandomization = archipelago.BellhomeRandomization;
+            cogheartPieceRandomization = archipelago.CogheartPieceRandomization;
+            questCollectibleRandomization = archipelago.QuestCollectibleRandomization;
+            materiumRandomization = archipelago.MateriumRandomization;
+            twistedBudRandomization = archipelago.TwistedBudRandomization;
+            fleaRandomization = archipelago.FleaRandomization;
+            crestSlotRandomization = archipelago.CrestSlotRandomization;
+            maskShardRandomization = archipelago.MaskShardRandomization;
+            spoolFragmentRandomization = archipelago.SpoolFragmentRandomization;
+            silkHeartRandomization = archipelago.SilkHeartRandomization;
+            bellwayRandomization = archipelago.BellwayRandomization;
+            ventricaRandomization = archipelago.VentricaRandomization;
+            mapRandomization = archipelago.MapRandomization;
+            needleUpgradeRandomization = archipelago.NeedleUpgradeRandomization;
+            paleOilRandomization = archipelago.PaleOilRandomization;
+            melodyRandomization = archipelago.MelodyRandomization;
+            pinRandomization = archipelago.PinRandomization;
+            relicRandomization = archipelago.RelicRandomization;
+            craftingKitRandomization = archipelago.CraftingKitRandomization;
+            minorPickupRandomization = archipelago.MinorPickupRandomization;
+            loreTabletRandomization = archipelago.LoreTabletRandomization;
+            simpleKeyRandomization = archipelago.SimpleKeyRandomization;
+            memoryLocketRandomization = archipelago.MemoryLocketRandomization;
+            craftmetalRandomization = archipelago.CraftmetalRandomization;
+            mossberryRandomization = archipelago.MossberryRandomization;
+            pollipHeartRandomization = archipelago.PollipHeartRandomization;
+            silkeaterRandomization = archipelago.SilkeaterRandomization;
+            majorKeyRandomization = archipelago.MajorKeyRandomization;
+            toolPouchRandomization = archipelago.ToolPouchRandomization;
+            bossSanity = archipelago.BossSanity;
+            journalRandomization = archipelago.JournalRandomization;
+            bellShrineSanity = archipelago.BellShrineSanity;
+            questSanityMode = archipelago.QuestSanity;
+            SetRoomLocationNames(archipelago.GetRoomLocationNames());
+            schemaVersion = CurrentSchemaVersion;
+        }
+
+        public bool MatchesRoom(Archipelago archipelago)
+        {
+            if (!IsRoomBound || archipelago == null)
+            {
+                return true;
+            }
+
+            return string.Equals(roomSeed, archipelago.RoomSeed, StringComparison.Ordinal) &&
+                   team == archipelago.Team &&
+                   slot == archipelago.Slot &&
+                   string.Equals(
+                       worldVersion,
+                       archipelago.WorldVersion,
+                       StringComparison.Ordinal
+                   ) &&
+                   string.Equals(goal, archipelago.Goal, StringComparison.Ordinal) &&
+                   string.Equals(
+                       spellingBeePhrase,
+                       archipelago.SpellingBeePhrase,
+                       StringComparison.Ordinal
+                   ) &&
+                   (
+                       !string.Equals(
+                           goal,
+                           Archipelago.FleaHuntGoal,
+                           StringComparison.Ordinal
+                       ) ||
+                       fleaHuntGoalCount == archipelago.FleaHuntGoalCount
+                   ) &&
+                   string.Equals(
+                       startingLocation,
+                       archipelago.StartingLocation,
+                       StringComparison.Ordinal
+                   ) &&
+                   string.Equals(
+                       startingCrest,
+                       archipelago.StartingCrest,
+                       StringComparison.Ordinal
+                   ) &&
+                   (progressionShuffle ?? new ProgressionShuffleState()).MatchesConfiguration(archipelago.ProgressionShuffleJson) &&
+                   string.Equals(entranceLayoutJson, archipelago.EntranceLayoutJson, StringComparison.Ordinal) &&
+                   splitDashAndSprint == archipelago.SplitDashAndSprint &&
+                   directionalClingGrip == archipelago.DirectionalClingGrip &&
+                   directionalClawline == archipelago.DirectionalClawline &&
+                   directionalSwiftStep == archipelago.DirectionalSwiftStep &&
+                   swiftStepFirstRight == archipelago.SwiftStepFirstRight &&
+                   directionalLedgeGrab == archipelago.DirectionalLedgeGrab &&
+
+                   ledgegrabAbilityRando ==
+                       archipelago.LedgegrabAbilityRando &&
+                   swimAbilityRando == archipelago.SwimAbilityRando &&
+                   bindRandomization == archipelago.BindRandomization &&
+                   startWithMaps == archipelago.StartWithMaps &&
+                   startFullyMapped == archipelago.StartFullyMapped &&
+                   automaticCompass == archipelago.AutomaticCompass &&
+                   randomizedBellMarkers ==
+                       archipelago.RandomizedBellMarkers &&
+                   randomizedMelodyMarkers ==
+                       archipelago.RandomizedMelodyMarkers &&
+                   (!vogHintSettingsBound ||
+                    VogHintSettingsMatch(archipelago)) &&
+                   string.Equals(
+                       bellwayAccess,
+                       archipelago.BellwayAccess,
+                       StringComparison.Ordinal
+                   ) &&
+                   string.Equals(
+                       trailsEndRequirement,
+                       archipelago.TrailsEndRequirement,
+                       StringComparison.Ordinal
+                   ) &&
+                   string.Equals(
+                       enemyRosaryMultiplier,
+                       archipelago.EnemyRosaryMultiplier,
+                       StringComparison.Ordinal
+                   ) &&
+                   string.Equals(
+                       enemyShardMultiplier,
+                       archipelago.EnemyShardMultiplier,
+                       StringComparison.Ordinal
+                   ) &&
+                   PurchasePriceSettingsMatch(archipelago) &&
+                   trapDisguises == archipelago.TrapDisguises &&
+                   divingBellKeyRandomization == archipelago.DivingBellKeyRandomization &&
+                   fasterDialogue == archipelago.FasterDialogue &&
+                   BossSoulState.NormalizeConfiguration(bossSoulsJson) == archipelago.BossSoulsJson &&
+                   NpcSoulState.NormalizeConfiguration(npcSoulsJson) == archipelago.NpcSoulsJson &&
+                   EnemySoulState.NormalizeConfiguration(enemySoulsJson) == archipelago.EnemySoulsJson &&
+                   alphabetMode == archipelago.AlphabetMode &&
+                    knockbackLink == archipelago.KnockbackLink &&
+                    silkLink == archipelago.SilkLink &&
+                    rosaryLink == archipelago.RosaryLink &&
+                    shellShardLink == archipelago.ShellShardLink &&
+                    individualRelicTurnIns ==
+                        archipelago.IndividualRelicTurnIns &&
+                   gameMode == archipelago.GameMode &&
+                   steelSoulSites.SequenceEqual(archipelago.SteelSoulSites) &&
+                   RandomizationModesMatch(archipelago);
+        }
+
+        internal void BindVogHintSettings(Archipelago archipelago)
+        {
+            if (archipelago == null)
+            {
+                return;
+            }
+
+            BindVogAreaHints(archipelago);
+            vogHintSettingsBound = true;
+        }
+
+        private bool VogHintSettingsMatch(Archipelago archipelago)
+        {
+            return archipelago != null && VogAreaHintsMatch(archipelago);
+        }
+
+        private bool RandomizationModesMatch(Archipelago archipelago)
+        {
+            return !TryGetRandomizationModeMismatch(
+                archipelago,
+                out _,
+                out _,
+                out _
+            );
+        }
+
+        private bool TryGetRandomizationModeMismatch(
+            Archipelago archipelago,
+            out string optionName,
+            out RandomizationMode savedMode,
+            out RandomizationMode roomMode
+        )
+        {
+            optionName = string.Empty;
+            savedMode = RandomizationMode.Anywhere;
+            roomMode = RandomizationMode.Anywhere;
+            if (archipelago == null)
+            {
+                return false;
+            }
+
+            Tuple<string, RandomizationMode, RandomizationMode>[] modes =
+            {
+                Tuple.Create("quill_randomization", quillRandomization, archipelago.QuillRandomization),
+                Tuple.Create("compass_randomization", compassRandomization, archipelago.CompassRandomization),
+                Tuple.Create("skill_randomization", skillRandomization, archipelago.SkillRandomization),
+                Tuple.Create("tool_randomization", toolRandomization, archipelago.ToolRandomization),
+                Tuple.Create("silk_skill_randomization", silkSkillRandomization, archipelago.SilkSkillRandomization),
+                Tuple.Create("crest_randomization", crestRandomization, archipelago.CrestRandomization),
+                Tuple.Create("eva_randomization", evaRandomization, archipelago.EvaRandomization),
+                Tuple.Create("soul_randomization", soulRandomization, archipelago.SoulRandomization),
+                Tuple.Create("old_heart_randomization", oldHeartRandomization, archipelago.OldHeartRandomization),
+                Tuple.Create("everbloom_randomization", everbloomRandomization, archipelago.EverbloomRandomization),
+                Tuple.Create("memento_randomization", mementoRandomization, archipelago.MementoRandomization),
+                Tuple.Create("farsight_randomization", farsightRandomization, archipelago.FarsightRandomization),
+                Tuple.Create("bellhome_randomization", bellhomeRandomization, archipelago.BellhomeRandomization),
+                Tuple.Create("cogheart_piece_randomization", cogheartPieceRandomization, archipelago.CogheartPieceRandomization),
+                Tuple.Create("quest_collectible_randomization", questCollectibleRandomization, archipelago.QuestCollectibleRandomization),
+                Tuple.Create("materium_randomization", materiumRandomization, archipelago.MateriumRandomization),
+                Tuple.Create("twisted_bud_randomization", twistedBudRandomization, archipelago.TwistedBudRandomization),
+                Tuple.Create("flea_randomization", fleaRandomization, archipelago.FleaRandomization),
+                Tuple.Create("crest_slot_randomization", crestSlotRandomization, archipelago.CrestSlotRandomization),
+                Tuple.Create("mask_shard_randomization", maskShardRandomization, archipelago.MaskShardRandomization),
+                Tuple.Create("spool_fragment_randomization", spoolFragmentRandomization, archipelago.SpoolFragmentRandomization),
+                Tuple.Create("silk_heart_randomization", silkHeartRandomization, archipelago.SilkHeartRandomization),
+                Tuple.Create("bellway_randomization", bellwayRandomization, archipelago.BellwayRandomization),
+                Tuple.Create("ventrica_randomization", ventricaRandomization, archipelago.VentricaRandomization),
+                Tuple.Create("map_randomization", mapRandomization, archipelago.MapRandomization),
+                Tuple.Create("needle_upgrade_randomization", needleUpgradeRandomization, archipelago.NeedleUpgradeRandomization),
+                Tuple.Create("pale_oil_randomization", paleOilRandomization, archipelago.PaleOilRandomization),
+                Tuple.Create("melody_randomization", melodyRandomization, archipelago.MelodyRandomization),
+                Tuple.Create("pin_randomization", pinRandomization, archipelago.PinRandomization),
+                Tuple.Create("relic_randomization", relicRandomization, archipelago.RelicRandomization),
+                Tuple.Create("crafting_kit_randomization", craftingKitRandomization, archipelago.CraftingKitRandomization),
+                Tuple.Create("minor_pickup_randomization", minorPickupRandomization, archipelago.MinorPickupRandomization),
+                Tuple.Create("lore_tablet_randomization", loreTabletRandomization, archipelago.LoreTabletRandomization),
+                Tuple.Create("simple_key_randomization", simpleKeyRandomization, archipelago.SimpleKeyRandomization),
+                Tuple.Create("memory_locket_randomization", memoryLocketRandomization, archipelago.MemoryLocketRandomization),
+                Tuple.Create("craftmetal_randomization", craftmetalRandomization, archipelago.CraftmetalRandomization),
+                Tuple.Create("mossberry_randomization", mossberryRandomization, archipelago.MossberryRandomization),
+                Tuple.Create("pollip_heart_randomization", pollipHeartRandomization, archipelago.PollipHeartRandomization),
+                Tuple.Create("silkeater_randomization", silkeaterRandomization, archipelago.SilkeaterRandomization),
+                Tuple.Create("major_key_randomization", majorKeyRandomization, archipelago.MajorKeyRandomization),
+                Tuple.Create("tool_pouch_randomization", toolPouchRandomization, archipelago.ToolPouchRandomization),
+                Tuple.Create("boss_sanity", bossSanity, archipelago.BossSanity),
+                Tuple.Create("journal_randomization", journalRandomization, archipelago.JournalRandomization),
+                Tuple.Create("bell_shrine_sanity", bellShrineSanity, archipelago.BellShrineSanity),
+                Tuple.Create("wish_sanity", questSanityMode, archipelago.QuestSanity),
+            };
+
+            foreach (Tuple<string, RandomizationMode, RandomizationMode> mode in modes)
+            {
+                if (mode.Item2 == mode.Item3)
+                {
+                    continue;
+                }
+
+                optionName = mode.Item1;
+                savedMode = mode.Item2;
+                roomMode = mode.Item3;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryGetPurchasePriceModeMismatch(
+            Archipelago archipelago,
+            out string optionName,
+            out string savedMode,
+            out string roomMode
+        )
+        {
+            optionName = string.Empty;
+            savedMode = string.Empty;
+            roomMode = string.Empty;
+            if (archipelago == null)
+            {
+                return false;
+            }
+
+            Tuple<string, string, string>[] modes =
+            {
+                Tuple.Create("normal_shop_prices", normalShopPrices, archipelago.NormalShopPrices),
+                Tuple.Create("bellway_prices", bellwayPrices, archipelago.BellwayPrices),
+                Tuple.Create("ventrica_prices", ventricaPrices, archipelago.VentricaPrices),
+                Tuple.Create("bench_prices", benchPrices, archipelago.BenchPrices),
+                Tuple.Create("miscellaneous_prices", miscellaneousPrices, archipelago.MiscellaneousPrices),
+                Tuple.Create("map_prices", mapPrices, archipelago.MapPrices),
+                Tuple.Create("pin_prices", pinPrices, archipelago.PinPrices),
+                Tuple.Create("upgrade_prices", upgradePrices, archipelago.UpgradePrices),
+                Tuple.Create("donation_prices", donationPrices, archipelago.DonationPrices),
+                Tuple.Create("vog_hint_prices", vogHintPrices, archipelago.VogHintPrices),
+            };
+            foreach (Tuple<string, string, string> mode in modes)
+            {
+                if (string.Equals(
+                        mode.Item2,
+                        mode.Item3,
+                        StringComparison.Ordinal
+                    ))
+                {
+                    continue;
+                }
+
+                optionName = mode.Item1;
+                savedMode = mode.Item2;
+                roomMode = mode.Item3;
+                return true;
+            }
+            return false;
+        }
+
+        public string GetRoomMismatchMessage(Archipelago archipelago)
+        {
+            bool roomIdentityMatches = archipelago != null &&
+                string.Equals(roomSeed, archipelago.RoomSeed, StringComparison.Ordinal) &&
+                team == archipelago.Team &&
+                slot == archipelago.Slot;
+
+            if (roomIdentityMatches &&
+                !string.Equals(
+                    worldVersion,
+                    archipelago.WorldVersion,
+                    StringComparison.Ordinal
+                ))
+            {
+                return "This randomizer save uses APWorld version '" +
+                       (string.IsNullOrWhiteSpace(worldVersion)
+                           ? "missing"
+                           : worldVersion) +
+                       "', but the current slot uses '" +
+                       (string.IsNullOrWhiteSpace(archipelago.WorldVersion)
+                           ? "missing"
+                           : archipelago.WorldVersion) +
+                       "'. Generate a new seed with the current APWorld and " +
+                       "start a new randomizer save.";
+            }
+
+            if (roomIdentityMatches && (gameMode != archipelago.GameMode ||
+                !steelSoulSites.SequenceEqual(archipelago.SteelSoulSites)))
+                return "This save uses different game mode or resting site settings than the connected slot.";
+
+            if (roomIdentityMatches &&
+                !string.Equals(goal, archipelago.Goal, StringComparison.Ordinal))
+            {
+                return "This randomizer save uses AP goal '" +
+                       (string.IsNullOrWhiteSpace(goal) ? "missing" : goal) +
+                       "', but the current slot uses '" +
+                       (string.IsNullOrWhiteSpace(archipelago.Goal)
+                           ? "missing"
+                           : archipelago.Goal) +
+                       "'. Start or load the save created for this slot's goal.";
+            }
+
+            if (roomIdentityMatches &&
+                !string.Equals(
+                    spellingBeePhrase,
+                    archipelago.SpellingBeePhrase,
+                    StringComparison.Ordinal
+                ))
+            {
+                return "This randomizer save uses spelling_bee_phrase '" +
+                       spellingBeePhrase +
+                       "', but the current slot uses '" +
+                       archipelago.SpellingBeePhrase +
+                       "'. Start or load the save created for this slot's settings.";
+            }
+
+            if (roomIdentityMatches &&
+                string.Equals(
+                    goal,
+                    Archipelago.FleaHuntGoal,
+                    StringComparison.Ordinal
+                ) &&
+                fleaHuntGoalCount != archipelago.FleaHuntGoalCount)
+            {
+                return "This randomizer save uses flea_hunt_count '" +
+                       fleaHuntGoalCount +
+                       "', but the current slot uses '" +
+                       archipelago.FleaHuntGoalCount +
+                       "'. Start or load the save created for this slot's settings.";
+            }
+
+            if (roomIdentityMatches &&
+                !string.Equals(
+                    startingLocation,
+                    archipelago.StartingLocation,
+                    StringComparison.Ordinal
+                ))
+            {
+                return "This randomizer save uses starting location '" +
+                       (string.IsNullOrWhiteSpace(startingLocation)
+                           ? "missing"
+                           : startingLocation) +
+                       "', but the current slot uses '" +
+                       (archipelago == null ||
+                        string.IsNullOrWhiteSpace(archipelago.StartingLocation)
+                           ? "missing"
+                           : archipelago.StartingLocation) +
+                       "'. Start or load the save created for this slot's settings.";
+            }
+
+            if (roomIdentityMatches &&
+                !string.Equals(
+                    startingCrest,
+                    archipelago.StartingCrest,
+                    StringComparison.Ordinal
+                ))
+            {
+                return "This randomizer save uses starting crest '" +
+                       (string.IsNullOrWhiteSpace(startingCrest)
+                           ? "missing"
+                           : startingCrest) +
+                       "', but the current slot uses '" +
+                       (archipelago == null ||
+                        string.IsNullOrWhiteSpace(archipelago.StartingCrest)
+                           ? "missing"
+                           : archipelago.StartingCrest) +
+                       "'. Start or load the save created for this slot's settings.";
+            }
+
+            if (roomIdentityMatches &&
+                splitDashAndSprint != archipelago.SplitDashAndSprint)
+            {
+                return "This randomizer save uses split_dash_and_sprint '" +
+                       splitDashAndSprint.ToString().ToLowerInvariant() +
+                       "', but the current slot uses '" +
+                       archipelago.SplitDashAndSprint
+                           .ToString()
+                           .ToLowerInvariant() +
+                       "'. Start or load the save created for this slot's settings.";
+            }
+
+            if (roomIdentityMatches &&
+                ledgegrabAbilityRando !=
+                    archipelago.LedgegrabAbilityRando)
+            {
+                return GetBooleanSettingMismatchMessage(
+                    "ledgegrab_ability_rando",
+                    ledgegrabAbilityRando,
+                    archipelago.LedgegrabAbilityRando
+                );
+            }
+
+            if (roomIdentityMatches &&
+                swimAbilityRando != archipelago.SwimAbilityRando)
+            {
+                return GetBooleanSettingMismatchMessage(
+                    "swim_ability_rando",
+                    swimAbilityRando,
+                    archipelago.SwimAbilityRando
+                );
+            }
+
+            if (roomIdentityMatches && bindRandomization != archipelago.BindRandomization)
+                return "The save and room use different Bind Randomization settings.";
+
+            if (roomIdentityMatches &&
+                startWithMaps != archipelago.StartWithMaps)
+            {
+                return GetBooleanSettingMismatchMessage(
+                    "start_with_maps",
+                    startWithMaps,
+                    archipelago.StartWithMaps
+                );
+            }
+
+            if (roomIdentityMatches &&
+                startFullyMapped != archipelago.StartFullyMapped)
+            {
+                return GetBooleanSettingMismatchMessage(
+                    "start_fully_mapped",
+                    startFullyMapped,
+                    archipelago.StartFullyMapped
+                );
+            }
+
+            if (roomIdentityMatches &&
+                automaticCompass != archipelago.AutomaticCompass)
+            {
+                return GetBooleanSettingMismatchMessage(
+                    "automatic_compass",
+                    automaticCompass,
+                    archipelago.AutomaticCompass
+                );
+            }
+
+            if (roomIdentityMatches &&
+                randomizedBellMarkers !=
+                    archipelago.RandomizedBellMarkers)
+            {
+                return GetBooleanSettingMismatchMessage(
+                    "randomized_bell_markers",
+                    randomizedBellMarkers,
+                    archipelago.RandomizedBellMarkers
+                );
+            }
+
+            if (roomIdentityMatches &&
+                randomizedMelodyMarkers !=
+                    archipelago.RandomizedMelodyMarkers)
+            {
+                return GetBooleanSettingMismatchMessage(
+                    "randomized_melody_markers",
+                    randomizedMelodyMarkers,
+                    archipelago.RandomizedMelodyMarkers
+                );
+            }
+
+            if (roomIdentityMatches &&
+                vogHintSettingsBound &&
+                !VogHintSettingsMatch(archipelago))
+            {
+                return "This randomizer save uses a different Vog hint " +
+                       "plan than the current slot. Start or load the save " +
+                       "created for this slot's settings.";
+            }
+
+            if (roomIdentityMatches &&
+                !string.Equals(
+                    bellwayAccess,
+                    archipelago.BellwayAccess,
+                    StringComparison.Ordinal
+                ))
+            {
+                return "This randomizer save uses bellway_access '" +
+                       bellwayAccess +
+                       "', but the current slot uses '" +
+                       archipelago.BellwayAccess +
+                       "'. Start or load the save created for this slot's settings.";
+            }
+
+            if (roomIdentityMatches &&
+                !string.Equals(
+                    trailsEndRequirement,
+                    archipelago.TrailsEndRequirement,
+                    StringComparison.Ordinal
+                ))
+            {
+                return "This randomizer save uses trails_end_requirement '" +
+                       trailsEndRequirement +
+                       "', but the current slot uses '" +
+                       archipelago.TrailsEndRequirement +
+                       "'. Start or load the save created for this slot's settings.";
+            }
+
+            if (roomIdentityMatches &&
+                !string.Equals(
+                    enemyRosaryMultiplier,
+                    archipelago.EnemyRosaryMultiplier,
+                    StringComparison.Ordinal
+                ))
+            {
+                return "This randomizer save uses enemy_rosary_multiplier '" +
+                       enemyRosaryMultiplier +
+                       "', but the current slot uses '" +
+                       archipelago.EnemyRosaryMultiplier +
+                       "'. Start or load the save created for this slot's settings.";
+            }
+
+            if (roomIdentityMatches &&
+                !string.Equals(
+                    enemyShardMultiplier,
+                    archipelago.EnemyShardMultiplier,
+                    StringComparison.Ordinal
+                ))
+            {
+                return "This randomizer save uses enemy_shard_multiplier '" +
+                       enemyShardMultiplier +
+                       "', but the current slot uses '" +
+                       archipelago.EnemyShardMultiplier +
+                       "'. Start or load the save created for this slot's settings.";
+            }
+
+            if (roomIdentityMatches &&
+                TryGetPurchasePriceModeMismatch(
+                    archipelago,
+                    out string priceOption,
+                    out string savedPriceMode,
+                    out string roomPriceMode
+                ))
+            {
+                return "This randomizer save uses " + priceOption +
+                       " '" + savedPriceMode +
+                       "', but the current slot uses '" +
+                       roomPriceMode +
+                       "'. Start or load the save created for this slot's settings.";
+            }
+
+            if (roomIdentityMatches &&
+                !PurchasePriceSettingsMatch(archipelago))
+            {
+                return "This randomizer save's resolved purchase prices " +
+                       "do not match the current slot. Start or load the " +
+                       "save created for this slot's settings.";
+            }
+
+            if (roomIdentityMatches && NpcSoulState.NormalizeConfiguration(npcSoulsJson) != archipelago.NpcSoulsJson)
+                return "This save uses different NPC Souls settings.";
+            if (roomIdentityMatches && EnemySoulState.NormalizeConfiguration(enemySoulsJson) != archipelago.EnemySoulsJson)
+                return "This save uses different Enemy Souls settings.";
+            if (roomIdentityMatches && BossSoulState.NormalizeConfiguration(bossSoulsJson) != archipelago.BossSoulsJson)
+                return "This save uses different Boss Souls settings.";
+            if (roomIdentityMatches && divingBellKeyRandomization != archipelago.DivingBellKeyRandomization)
+                return GetBooleanSettingMismatchMessage("diving_bell_key_randomization", divingBellKeyRandomization, archipelago.DivingBellKeyRandomization);
+            if (roomIdentityMatches && trapDisguises != archipelago.TrapDisguises)
+            {
+                return GetBooleanSettingMismatchMessage("trap_disguises", trapDisguises, archipelago.TrapDisguises);
+            }
+
+            if (roomIdentityMatches &&
+                fasterDialogue != archipelago.FasterDialogue)
+            {
+                return GetBooleanSettingMismatchMessage(
+                    "faster_dialogue",
+                    fasterDialogue,
+                    archipelago.FasterDialogue
+                );
+            }
+
+            if (roomIdentityMatches &&
+                alphabetMode != archipelago.AlphabetMode)
+            {
+                return GetBooleanSettingMismatchMessage(
+                    "alphabet_mode",
+                    alphabetMode,
+                    archipelago.AlphabetMode
+                );
+            }
+
+            if (roomIdentityMatches &&
+                knockbackLink != archipelago.KnockbackLink)
+            {
+                return GetBooleanSettingMismatchMessage(
+                    "knockback_link", knockbackLink, archipelago.KnockbackLink);
+            }
+
+            if (roomIdentityMatches &&
+                silkLink != archipelago.SilkLink)
+            {
+                return GetBooleanSettingMismatchMessage(
+                    "silk_link",
+                    silkLink,
+                    archipelago.SilkLink
+                );
+            }
+
+            if (roomIdentityMatches &&
+                rosaryLink != archipelago.RosaryLink)
+            {
+                return GetBooleanSettingMismatchMessage(
+                    "rosary_link",
+                    rosaryLink,
+                    archipelago.RosaryLink
+                );
+            }
+
+            if (roomIdentityMatches &&
+                shellShardLink != archipelago.ShellShardLink)
+            {
+                return GetBooleanSettingMismatchMessage(
+                    "shell_shard_link",
+                    shellShardLink,
+                    archipelago.ShellShardLink
+                );
+            }
+
+            if (roomIdentityMatches &&
+                individualRelicTurnIns !=
+                    archipelago.IndividualRelicTurnIns)
+            {
+                return GetBooleanSettingMismatchMessage(
+                    "individual_relic_turn_ins",
+                    individualRelicTurnIns,
+                    archipelago.IndividualRelicTurnIns
+                );
+            }
+
+            if (roomIdentityMatches &&
+                TryGetRandomizationModeMismatch(
+                    archipelago,
+                    out string optionName,
+                    out RandomizationMode savedMode,
+                    out RandomizationMode roomMode
+                ))
+            {
+                return "This randomizer save uses " + optionName + " '" +
+                       savedMode.ToString().ToLowerInvariant() +
+                       "', but the current slot uses '" +
+                       roomMode.ToString().ToLowerInvariant() +
+                       "'. Start or load the save created for this slot's settings.";
+            }
+
+            string savedSlot = string.IsNullOrWhiteSpace(slotName) ? slot.ToString() : slotName;
+            string currentSlot = archipelago == null || string.IsNullOrWhiteSpace(archipelago.SlotName)
+                ? "unknown"
+                : archipelago.SlotName;
+
+            return "This randomizer save belongs to AP seed '" + roomSeed +
+                   "', slot '" + savedSlot + "', but the current connection is seed '" +
+                   (archipelago == null ? "unknown" : archipelago.RoomSeed) +
+                   "', slot '" + currentSlot + "'.";
+        }
+
+        private static string GetBooleanSettingMismatchMessage(
+            string optionName,
+            bool savedValue,
+            bool roomValue
+        )
+        {
+            return "This randomizer save uses " + optionName + " '" +
+                   savedValue.ToString().ToLowerInvariant() +
+                   "', but the current slot uses '" +
+                   roomValue.ToString().ToLowerInvariant() +
+                   "'. Start or load the save created for this slot's settings.";
+        }
+
+        internal void RecordDeath(bool viaDeathLink)
+        {
+            if (!IsRoomBound) return;
+            if (viaDeathLink) deathLinkDeathCount = (int)Math.Min(int.MaxValue, (long)Math.Max(0, deathLinkDeathCount) + 1);
+            else deathCount = (int)Math.Min(int.MaxValue, (long)Math.Max(0, deathCount) + 1);
+            RandomizerPlugin.Instance?.RequestDisconnectSave();
+        }
+
+        public Item GetItem(string itemName)
+        {
+            if (string.IsNullOrWhiteSpace(itemName))
+            {
+                return null;
+            }
+
+            string canonicalName = ItemSet.GetCanonicalItemName(itemName);
+            return items.items.FirstOrDefault(x =>
+                string.Equals(x.Name, canonicalName, StringComparison.OrdinalIgnoreCase)
+            );
+        }
+
+        public RandomizationMode GetRandomizationMode(ItemType type)
+        {
+            switch (type)
+            {
+                case ItemType.Quill:
+                    return quillRandomization;
+                case ItemType.Compass:
+                    return compassRandomization;
+                case ItemType.Skill:
+                    return skillRandomization;
+                case ItemType.Tool:
+                    return toolRandomization;
+                case ItemType.Spell:
+                    return silkSkillRandomization;
+                case ItemType.Crest:
+                    return crestRandomization;
+                case ItemType.Flea:
+                    return fleaRandomization;
+                case ItemType.Eva:
+                    return evaRandomization;
+                case ItemType.Soul:
+                    return soulRandomization;
+                case ItemType.OldHeart:
+                    return oldHeartRandomization;
+                case ItemType.Everbloom:
+                    return everbloomRandomization;
+                case ItemType.Memento:
+                    return mementoRandomization;
+                case ItemType.Farsight:
+                    return farsightRandomization;
+                case ItemType.Bellhome:
+                    return bellhomeRandomization;
+                case ItemType.Cogheart:
+                    return cogheartPieceRandomization;
+                case ItemType.QuestCollectible:
+                    return questCollectibleRandomization;
+                case ItemType.Materium:
+                    return materiumRandomization;
+                case ItemType.TwistedBud:
+                    return twistedBudRandomization;
+                case ItemType.CrestSlot:
+                    return crestSlotRandomization;
+                case ItemType.MaskShard:
+                    return maskShardRandomization;
+                case ItemType.SpoolFragment:
+                    return spoolFragmentRandomization;
+                case ItemType.SilkHeart:
+                    return silkHeartRandomization;
+                case ItemType.Bellway:
+                    return bellwayRandomization;
+                case ItemType.Ventrica:
+                    return ventricaRandomization;
+                case ItemType.Map:
+                    return mapRandomization;
+                case ItemType.Melody:
+                    return melodyRandomization;
+                case ItemType.Pin:
+                    return pinRandomization;
+                case ItemType.Relic:
+                    return relicRandomization;
+                case ItemType.Upgrade:
+                    return craftingKitRandomization;
+                case ItemType.Resource:
+                    return minorPickupRandomization;
+                case ItemType.LoreTablet:
+                    return loreTabletRandomization;
+                case ItemType.SimpleKey:
+                    return simpleKeyRandomization;
+                case ItemType.MemoryLocket:
+                    return memoryLocketRandomization;
+                case ItemType.Craftmetal:
+                    return craftmetalRandomization;
+                case ItemType.Mossberry:
+                    return mossberryRandomization;
+                case ItemType.PollipHeart:
+                    return pollipHeartRandomization;
+                case ItemType.Silkeater:
+                    return silkeaterRandomization;
+                case ItemType.MajorKey:
+                    return majorKeyRandomization;
+                case ItemType.ToolPouch:
+                    return toolPouchRandomization;
+                case ItemType.Boss:
+                    return bossSanity;
+                case ItemType.Journal:
+                    return journalRandomization;
+                case ItemType.BellShrine:
+                    return bellShrineSanity;
+                case ItemType.Quest:
+                    return questSanityMode;
+                case ItemType.NeedleUpgrade:
+                    return needleUpgradeRandomization;
+                case ItemType.PaleOil:
+                    return paleOilRandomization;
+                case ItemType.InnateAbility:
+                    return ledgegrabAbilityRando || swimAbilityRando || bindRandomization != "vanilla"
+                        ? RandomizationMode.Anywhere
+                        : RandomizationMode.Vanilla;
+                default:
+                    return RandomizationMode.Anywhere;
+            }
+        }
+
+        public bool IsRandomized(ItemType type)
+        {
+            if ((type == ItemType.Quill && startFullyMapped) ||
+                (type == ItemType.Compass && automaticCompass))
+            {
+                return true;
+            }
+
+            // Starting maps leave filler at their checks, even with vanilla map settings.
+            if (type == ItemType.Map && startWithMaps)
+            {
+                return true;
+            }
+
+            if (type == ItemType.Flea &&
+                string.Equals(
+                    goal,
+                    Archipelago.FleaHuntGoal,
+                    StringComparison.Ordinal
+                ))
+            {
+                return true;
+            }
+
+            return GetRandomizationMode(type) != RandomizationMode.Vanilla;
+        }
+
+        internal bool NeedsStartWithMapsBootstrap()
+        {
+            if (!startWithMaps)
+            {
+                return false;
+            }
+
+            if (receivedItems == null)
+            {
+                return true;
+            }
+
+            return StartingMapItemNames.Any(
+                itemName => !receivedItems.Contains(itemName)
+            );
+        }
+
+        internal bool RecordStartWithMapsBootstrapItems()
+        {
+            if (!startWithMaps)
+            {
+                return false;
+            }
+
+            if (receivedItems == null)
+            {
+                receivedItems = new HashSet<string>(
+                    StringComparer.OrdinalIgnoreCase
+                );
+            }
+
+            bool changed = false;
+            foreach (string itemName in StartingMapItemNames)
+            {
+                changed |= receivedItems.Add(itemName);
+            }
+            return changed;
+        }
+
+        internal bool IsStartWithMapsBootstrapItem(string itemName)
+        {
+            if (!startWithMaps || string.IsNullOrWhiteSpace(itemName))
+            {
+                return false;
+            }
+
+            string canonical = ItemSet.GetCanonicalItemName(itemName);
+            return StartWithMapsItemNameSet.Contains(canonical) &&
+                (canonical != "Map: Verdania" || goal == Archipelago.ActThreeGoal);
+        }
+
+        public bool IsLocationEnabled(string locationName)
+        {
+            string canonicalName =
+                LocationSet.GetCanonicalLocationName(locationName);
+            if (string.Equals(
+                    canonicalName,
+                    Archipelago.GoalLocationName,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (ScroungeRelicTurnInManifest.IsTurnInLocation(
+                    canonicalName
+                ) ||
+                CardiniusCylinderTurnInManifest.IsTurnInLocation(
+                    canonicalName
+                ))
+            {
+                return individualRelicTurnIns;
+            }
+
+            if (Patches.FleaPatches.IsNamedNpcFleaLocation(canonicalName))
+            {
+                return IsLocationInSeed(canonicalName);
+            }
+
+            if (automaticCompass &&
+                string.Equals(
+                    canonicalName,
+                    "Compass",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                // The option turns the otherwise-vanilla Compass source into
+                // an AP check even when Tool randomization itself is off.
+                return true;
+            }
+
+            Location[] currentLocations = locations?.Locations;
+            if (!ReferenceEquals(enabledLocationSource, currentLocations))
+            {
+                enabledLocationSource = currentLocations;
+                enabledLocations = currentLocations?
+                    .GroupBy(location => location.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+            }
+            Location location = null;
+            if (canonicalName != null)
+                enabledLocations?.TryGetValue(canonicalName, out location);
+            return location == null || IsRandomized(location.Type);
+        }
+
+        public bool IsLocationChecked(string locationName)
+        {
+            return !string.IsNullOrWhiteSpace(locationName) &&
+                   checkedLocations.Contains(
+                       LocationSet.GetCanonicalLocationName(locationName)
+                   );
+        }
+
+        public void SetRoomLocationNames(
+            IEnumerable<string> locationNames
+        )
+        {
+            roomLocationNames = new HashSet<string>(
+                (locationNames ?? Enumerable.Empty<string>())
+                    .Select(LocationSet.GetCanonicalLocationName)
+                    .Where(name => !string.IsNullOrWhiteSpace(name)),
+                StringComparer.OrdinalIgnoreCase
+            );
+        }
+
+        public void SetRandomizedItemMarkerLocations(
+            IEnumerable<KeyValuePair<string, string>> locations
+        )
+        {
+            randomizedItemMarkerLocationLookup = (
+                locations ?? Enumerable.Empty<
+                    KeyValuePair<string, string>>()
+            )
+                .Where(entry =>
+                    !string.IsNullOrWhiteSpace(entry.Key) &&
+                    !string.IsNullOrWhiteSpace(entry.Value))
+                .GroupBy(
+                    entry => ItemSet.GetCanonicalItemName(entry.Key),
+                    StringComparer.OrdinalIgnoreCase
+                )
+                .ToDictionary(
+                    group => group.Key,
+                    group => LocationSet.GetCanonicalLocationName(
+                        group.Last().Value
+                    ),
+                    StringComparer.OrdinalIgnoreCase
+                );
+            randomizedItemMarkerLocations =
+                randomizedItemMarkerLocationLookup
+                    .OrderBy(entry => entry.Key, StringComparer.Ordinal)
+                    .Select(entry => new ItemMarkerLocationData(
+                        entry.Key,
+                        entry.Value
+                    ))
+                    .ToList();
+        }
+
+        public bool TryGetRandomizedItemMarkerLocation(
+            string itemName,
+            out string locationName
+        )
+        {
+            locationName = string.Empty;
+            return randomizedItemMarkerLocationLookup != null &&
+                randomizedItemMarkerLocationLookup.TryGetValue(
+                    ItemSet.GetCanonicalItemName(itemName),
+                    out locationName
+                ) &&
+                !string.IsNullOrWhiteSpace(locationName);
+        }
+
+        public void SetCrestSlotItemFlags(
+            IEnumerable<KeyValuePair<string, ItemFlags>> flags)
+        {
+            crestSlotItemFlagLookup = (
+                flags ?? Enumerable.Empty<
+                    KeyValuePair<string, ItemFlags>>()
+            )
+                .Where(entry =>
+                    !string.IsNullOrWhiteSpace(entry.Key) &&
+                    (int)entry.Value >= 0)
+                .GroupBy(
+                    entry => LocationSet.GetCanonicalLocationName(
+                        entry.Key
+                    ),
+                    StringComparer.OrdinalIgnoreCase
+                )
+                .Where(group =>
+                    !string.IsNullOrWhiteSpace(group.Key))
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Last().Value,
+                    StringComparer.OrdinalIgnoreCase
+                );
+            crestSlotItemFlags = crestSlotItemFlagLookup
+                .OrderBy(entry => entry.Key, StringComparer.Ordinal)
+                .Select(entry => new CrestSlotItemFlagData(
+                    entry.Key,
+                    entry.Value
+                ))
+                .ToList();
+        }
+
+        public bool TryGetCrestSlotItemFlags(
+            string locationName,
+            out ItemFlags flags)
+        {
+            flags = ItemFlags.None;
+            return crestSlotItemFlagLookup != null &&
+                crestSlotItemFlagLookup.TryGetValue(
+                    LocationSet.GetCanonicalLocationName(locationName),
+                    out flags
+                );
+        }
+
+        public bool IsLocationInSeed(string locationName)
+        {
+            string canonicalName =
+                LocationSet.GetCanonicalLocationName(locationName);
+            if (string.IsNullOrWhiteSpace(canonicalName))
+            {
+                return false;
+            }
+
+            if (string.Equals(
+                    canonicalName,
+                    Archipelago.GoalLocationName,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (roomLocationNames != null &&
+                roomLocationNames.Count > 0)
+            {
+                return roomLocationNames.Contains(canonicalName);
+            }
+
+            // A sidecar without its room set can acquire it on connection.
+            // Until then, do not show checks
+            // that the seed may have left vanilla.
+            Archipelago archipelago = Archipelago.Instance;
+            return archipelago != null &&
+                   archipelago.Connected &&
+                   archipelago.IsLocationInRoom(canonicalName);
+        }
+
+        public void CheckLocation(string locationName)
+        {
+            string canonicalName =
+                LocationSet.GetCanonicalLocationName(locationName);
+            if (string.IsNullOrWhiteSpace(canonicalName))
+            {
+                return;
+            }
+
+            if (!IsLocationEnabled(canonicalName) ||
+                !checkedLocations.Add(canonicalName))
+            {
+                return;
+            }
+
+            if (string.Equals(canonicalName, Archipelago.GoalLocationName, StringComparison.OrdinalIgnoreCase))
+            {
+                goalCompleted = true;
+            }
+
+            Archipelago archipelago = Archipelago.Instance;
+            if (archipelago != null)
+            {
+                archipelago.UnlockLocation(canonicalName);
+            }
+
+            if (archipelago == null || !archipelago.Connected)
+            {
+                RandomizerPlugin.Instance?.RequestDisconnectSave();
+            }
+        }
+
+        public bool CommitReceivedItemAtIndex(
+            int itemIndex,
+            string itemName,
+            bool repeatable = false
+        )
+        {
+            if (itemIndex < receivedItemIndex)
+            {
+                return false;
+            }
+
+            if (itemIndex > receivedItemIndex)
+            {
+                throw new InvalidOperationException(
+                    "Received AP item out of order. Expected index " +
+                    receivedItemIndex + ", got " + itemIndex + "."
+                );
+            }
+
+            string canonicalItemName =
+                ItemSet.GetCanonicalItemName(itemName);
+            if (receivedItemHistory == null)
+            {
+                receivedItemHistory = new List<string>();
+            }
+
+            if (receivedItemHistory.Count > itemIndex)
+            {
+                throw new InvalidOperationException(
+                    "Received AP item history is ahead of index " +
+                    itemIndex + "."
+                );
+            }
+
+            while (receivedItemHistory.Count < itemIndex)
+            {
+                receivedItemHistory.Add(string.Empty);
+            }
+            receivedItemHistory.Add(canonicalItemName);
+            bool newlyReceived = receivedItems.Add(canonicalItemName);
+            receivedItemIndex++;
+            TryCompleteFleaHuntGoal();
+            return repeatable || newlyReceived;
+        }
+
+        internal bool TrySynchronizeReceivedItemHistory(
+            IReadOnlyList<string> serverItems
+        )
+        {
+            if (serverItems == null ||
+                receivedItemIndex < 0 ||
+                serverItems.Count < receivedItemIndex ||
+                receivedItemHistory == null ||
+                receivedItemHistory.Count > receivedItemIndex)
+            {
+                return false;
+            }
+
+            List<string> synchronizedHistory =
+                new List<string>(receivedItemIndex);
+            for (int index = 0; index < receivedItemIndex; index++)
+            {
+                string serverItem = ItemSet.GetCanonicalItemName(
+                    serverItems[index]
+                );
+                synchronizedHistory.Add(serverItem);
+                if (receivedItems == null ||
+                    !receivedItems.Contains(serverItem))
+                {
+                    return false;
+                }
+
+                string savedItem = index < receivedItemHistory.Count
+                    ? receivedItemHistory[index]
+                    : string.Empty;
+                if (!string.IsNullOrWhiteSpace(savedItem))
+                {
+                    if (!string.Equals(
+                            savedItem,
+                            serverItem,
+                            StringComparison.OrdinalIgnoreCase
+                        ))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            receivedItemHistory = synchronizedHistory;
+            return true;
+        }
+
+        internal int GetReceivedItemCount(string itemName)
+        {
+            int count = 0;
+            if (receivedItemHistory == null) return count;
+            int limit = Math.Min(receivedItemIndex, receivedItemHistory.Count);
+            for (int i = 0; i < limit; i++)
+                if (receivedItemHistory[i] == itemName) count++;
+            return count;
+        }
+
+        public int GetReceivedFleaCount()
+        {
+            int count = Math.Min(27, GetReceivedItemCount("Flea"));
+            if (receivedItems?.Contains(Patches.FleaPatches.KrattItemName) == true) count++;
+            if (receivedItems?.Contains(Patches.FleaPatches.VogItemName) == true) count++;
+            if (receivedItems?.Contains(Patches.FleaPatches.HugeFleaItemName) == true) count++;
+            return count;
+        }
+
+        public int GetFleaHuntProgressCount()
+        {
+            if (IsRandomized(ItemType.Flea))
+            {
+                return GetReceivedFleaCount();
+            }
+
+            PlayerData playerData = PlayerData.instance;
+            if (playerData == null)
+            {
+                return 0;
+            }
+
+            int count = Math.Max(0, Math.Min(27, playerData.SavedFleasCount));
+            count += HasReceivedItemOrNativeFlea(
+                Patches.FleaPatches.KrattItemName,
+                playerData.CaravanLechSaved
+            ) ? 1 : 0;
+            count += HasReceivedItemOrNativeFlea(
+                Patches.FleaPatches.VogItemName,
+                playerData.MetTroupeHunterWild
+            ) ? 1 : 0;
+            count += HasReceivedItemOrNativeFlea(
+                Patches.FleaPatches.HugeFleaItemName,
+                playerData.tamedGiantFlea
+            ) ? 1 : 0;
+            return Math.Min(30, count);
+        }
+
+        private bool HasReceivedItemOrNativeFlea(
+            string itemName,
+            bool nativeFlag
+        )
+        {
+            return nativeFlag || (
+                receivedItems != null &&
+                receivedItems.Contains(ItemSet.GetCanonicalItemName(itemName))
+            );
+        }
+
+        public bool TryCompleteFleaHuntGoal()
+        {
+            if (goalCompleted ||
+                !string.Equals(
+                    goal,
+                    Archipelago.FleaHuntGoal,
+                    StringComparison.Ordinal
+                ) ||
+                !Archipelago.IsSupportedFleaHuntGoalCount(
+                    fleaHuntGoalCount
+                ) ||
+                GetFleaHuntProgressCount() < fleaHuntGoalCount)
+            {
+                return false;
+            }
+
+            CheckLocation(Archipelago.GoalLocationName);
+            return goalCompleted;
+        }
+
+        internal bool CacheHint(HintData hint)
+        {
+            if (hint == null ||
+                string.IsNullOrWhiteSpace(hint.locationName))
+            {
+                return false;
+            }
+
+            string canonicalLocationName =
+                LocationSet.GetCanonicalLocationName(hint.locationName);
+            if (receivedHints == null)
+            {
+                receivedHints = new List<HintData>();
+            }
+
+            HintData existingHint = receivedHints.FirstOrDefault(candidate =>
+                candidate != null &&
+                string.Equals(
+                    candidate.locationName,
+                    canonicalLocationName,
+                    StringComparison.OrdinalIgnoreCase
+                ));
+            if (existingHint != null)
+            {
+                if (!hint.official)
+                {
+                    if (string.IsNullOrEmpty(existingHint.game) && !string.IsNullOrEmpty(hint.game))
+                    {
+                        existingHint.game = hint.game;
+                        return true;
+                    }
+                    return false;
+                }
+
+                bool found = existingHint.found || hint.found;
+                bool changed = !existingHint.official ||
+                               existingHint.found != found ||
+                               !string.Equals(
+                                   existingHint.user,
+                                   hint.user,
+                                   StringComparison.Ordinal
+                               ) ||
+                               !string.Equals(
+                                   existingHint.item,
+                                   hint.item,
+                                   StringComparison.Ordinal
+                               ) ||
+                               existingHint.flags != hint.flags;
+                existingHint.user = hint.user;
+                existingHint.item = hint.item;
+                existingHint.game = hint.game;
+                existingHint.flags = hint.flags;
+                existingHint.official = true;
+                existingHint.found = found;
+                return changed;
+            }
+
+            hint.locationName = canonicalLocationName;
+            receivedHints.Add(hint);
+            return true;
+        }
+
+        internal IReadOnlyList<string> BuildHintJournalEntries()
+        {
+            List<HintData> officialHints = (receivedHints ??
+                    new List<HintData>())
+                .Where(hint =>
+                    hint != null &&
+                    hint.official &&
+                    !string.IsNullOrWhiteSpace(hint.locationName) &&
+                    !string.IsNullOrWhiteSpace(hint.item))
+                .ToList();
+            HashSet<string> addedOfficialLocations = new HashSet<string>(
+                StringComparer.OrdinalIgnoreCase
+            );
+            HashSet<string> addedEntries = new HashSet<string>(
+                StringComparer.OrdinalIgnoreCase
+            );
+            List<string> entries = new List<string>(GetVogAreaReports());
+
+            foreach (HintData hint in officialHints)
+            {
+                if (!addedOfficialLocations.Add(hint.locationName))
+                {
+                    continue;
+                }
+
+                if (IsHintFound(hint))
+                {
+                    continue;
+                }
+
+                string text = FormatOfficialJournalEntry(hint);
+                if (addedEntries.Add(text))
+                {
+                    entries.Add(text);
+                }
+            }
+
+            return entries;
+        }
+
+        private static string FormatOfficialHint(HintData hint)
+        {
+            string recipient = string.IsNullOrWhiteSpace(hint.user)
+                ? "Unknown player"
+                : hint.user;
+            return hint.locationName + " contains " + hint.item +
+                   " for " + recipient + ".";
+        }
+
+        private bool IsHintFound(HintData hint)
+        {
+            return hint.found || IsLocationChecked(hint.locationName);
+        }
+
+        private static string FormatOfficialJournalEntry(HintData hint)
+        {
+            return "Unfound: " + FormatOfficialHint(hint);
+        }
+
+        public bool GetHint(
+            string locationName,
+            out string user,
+            out string item,
+            out ItemFlags flags,
+            bool allowNetworkRequest = true)
+        {
+            user = null;
+            item = null;
+            flags = ItemFlags.None;
+
+            if (string.IsNullOrWhiteSpace(locationName))
+            {
+                return false;
+            }
+            string canonicalLocationName =
+                LocationSet.GetCanonicalLocationName(locationName);
+
+            if (receivedHints == null)
+            {
+                receivedHints = new List<HintData>();
+            }
+
+            HintData hint = receivedHints.FirstOrDefault(x =>
+                string.Equals(
+                    x.locationName,
+                    canonicalLocationName,
+                    StringComparison.OrdinalIgnoreCase
+                ));
+
+            if (hint == null &&
+                allowNetworkRequest &&
+                Archipelago.Instance != null &&
+                Archipelago.Instance.Connected)
+            {
+                hint = Archipelago.Instance.GetHint(canonicalLocationName);
+
+                if (hint != null)
+                {
+                    CacheHint(hint);
+                }
+            }
+
+            if (hint == null)
+            {
+                return false;
+            }
+
+            user = hint.user;
+            item = hint.item;
+            flags = hint.flags;
+            return true;
+        }
+    }
+}

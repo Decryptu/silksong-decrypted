@@ -1,0 +1,430 @@
+using HarmonyLib;
+using HutongGames.PlayMaker;
+using HutongGames.PlayMaker.Actions;
+using SilksongRandomizer.AlphabetMode;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using UnityEngine;
+
+namespace SilksongRandomizer.Patches
+{
+    internal static class BellhomePhaseManager
+    {
+        internal const string BellhomeSceneName =
+            "Belltown_Room_Spare";
+        internal const string BellhomeEntryGateName = "left1";
+        private const string BellhartSceneName = "Belltown";
+        private const string BellhartEntryGateName = "door5";
+        private const string BellhomeBenchObjectName = "RestBench";
+        private const string BellhomeBenchFsmName = "Bench Control";
+        private const string BellhomeBenchRestingStateName = "Resting";
+        private static readonly FieldInfo DialogueYesNoBoxInstanceField =
+            AccessTools.Field(typeof(DialogueYesNoBox), "_instance");
+
+        private static readonly object PromptInputBlocker = new object();
+        private static HeroController promptHero;
+        private static SaveState promptState;
+        private static bool promptOpen;
+        private static bool phaseChangeInProgress;
+        private static int inputReleaseFrame = -1;
+        internal static void Update()
+        {
+            if (promptOpen &&
+                (promptHero == null ||
+                 promptHero != HeroController.instance ||
+                 !ReferenceEquals(promptState, SaveState.Instance) ||
+                 SaveState.Instance?.IsRoomBound != true ||
+                 !IsBellhomeSceneLoaded()))
+            {
+                promptOpen = false;
+                ReleasePromptInput();
+                DialogueYesNoBox.ForceClose();
+            }
+
+
+            SaveState state = SaveState.Instance;
+            PlayerData playerData = PlayerData.instance;
+            if (state == null ||
+                !state.IsRoomBound ||
+                playerData == null)
+            {
+                return;
+            }
+
+            if (playerData.blackThreadWorld &&
+                playerData.act3_wokeUp)
+            {
+                state.bellhomePhaseToggleUnlocked = true;
+            }
+        }
+
+        internal static bool TryInterceptBellhomeNeedolin(
+            ListenForDreamNail action)
+        {
+            if (!IsBellhomeBenchNeedolinListener(action))
+            {
+                return false;
+            }
+            if (BlocksBenchInput(action))
+            {
+                return true;
+            }
+
+            SaveState state = SaveState.Instance;
+            PlayerData playerData = PlayerData.instance;
+            GameManager gameManager = GameManager.instance;
+            if (state == null ||
+                !state.IsRoomBound ||
+                playerData == null ||
+                gameManager == null ||
+                !playerData.atBench ||
+                gameManager.isPaused ||
+                !(state.bellhomePhaseToggleUnlocked ||
+                  playerData.act3_wokeUp))
+            {
+                return false;
+            }
+
+            InputHandler inputHandler =
+                gameManager.GetComponent<InputHandler>();
+            if (inputHandler == null ||
+                inputHandler.inputActions == null ||
+                !inputHandler.inputActions.DreamNail.WasPressed ||
+                !inputHandler.inputActions.Dash.IsPressed ||
+                !IsDialoguePromptReady())
+            {
+                return false;
+            }
+
+            bool targetBlackThreadWorld =
+                !playerData.blackThreadWorld;
+            string prompt = GetPrompt(
+                targetBlackThreadWorld,
+                playerData.act3_wokeUp
+            );
+
+            promptHero = HeroController.instance;
+            if (promptHero == null)
+            {
+                return false;
+            }
+            promptState = state;
+            promptHero.AddInputBlocker(PromptInputBlocker);
+            inputHandler.ForceDreamNailRePress = true;
+            promptOpen = true;
+            try
+            {
+                DialogueYesNoBox.Open(
+                    () =>
+                    {
+                        if (!promptOpen)
+                        {
+                            return;
+                        }
+                        promptOpen = false;
+                        BeginPhaseChange(targetBlackThreadWorld);
+                    },
+                    () =>
+                    {
+                        promptOpen = false;
+                        ReleasePromptInput();
+                    },
+                    true,
+                    AlphabetModeManager.FilterDirectText(prompt)
+                );
+            }
+            catch (Exception ex)
+            {
+                promptOpen = false;
+                ReleasePromptInput();
+                RandomizerPlugin.Log?.LogWarning(
+                    "[RANDOMIZER] Could not open the Bellhome phase " +
+                    "confirmation: " + ex.Message
+                );
+                return false;
+            }
+
+            return true;
+        }
+
+        internal static bool BlocksBenchInput(FsmStateAction action) =>
+            (promptOpen || phaseChangeInProgress || Time.frameCount <= inputReleaseFrame) &&
+            IsBellhomeBenchNeedolinListener(action);
+
+        private static bool IsBellhomeBenchNeedolinListener(
+            FsmStateAction action)
+        {
+            return action != null &&
+                   action.Owner != null &&
+                   action.Fsm != null &&
+                   action.State != null &&
+                   string.Equals(
+                       GameManager.GetBaseSceneName(
+                           action.Owner.scene.name
+                       ),
+                       BellhomeSceneName,
+                       StringComparison.OrdinalIgnoreCase
+                   ) &&
+                   string.Equals(
+                       action.Owner.name,
+                       BellhomeBenchObjectName,
+                       StringComparison.Ordinal
+                   ) &&
+                   string.Equals(
+                       action.Fsm.Name,
+                       BellhomeBenchFsmName,
+                       StringComparison.Ordinal
+                   ) &&
+                   string.Equals(
+                       action.State.Name,
+                       BellhomeBenchRestingStateName,
+                       StringComparison.Ordinal
+                   );
+        }
+
+        private static bool IsDialoguePromptReady()
+        {
+            if (DialogueYesNoBoxInstanceField == null)
+            {
+                return false;
+            }
+
+            DialogueYesNoBox instance =
+                DialogueYesNoBoxInstanceField.GetValue(null) as
+                    DialogueYesNoBox;
+            return instance != null;
+        }
+
+        private static string GetPrompt(
+            bool targetBlackThreadWorld,
+            bool act3WokeUp)
+        {
+            if (!targetBlackThreadWorld)
+            {
+                return "Return Pharloom to its late Act 2 state?\n\n" +
+                       "Your Act 3 progress will be preserved.";
+            }
+
+            if (!act3WokeUp)
+            {
+                return "Switch Pharloom to its Act 3 world state for " +
+                       "logic testing?";
+            }
+
+            return "Restore the Black Thread world and return to Act 3?" +
+                   "\n\nYour Act 3 progress will be preserved.";
+        }
+
+        private static void ReleasePromptInput()
+        {
+            if (promptHero != null)
+            {
+                promptHero.RemoveInputBlocker(PromptInputBlocker);
+            }
+            inputReleaseFrame = Time.frameCount + 1;
+            promptHero = null;
+            promptState = null;
+        }
+
+        private static void BeginPhaseChange(
+            bool targetBlackThreadWorld)
+        {
+            if (phaseChangeInProgress || RandomizerPlugin.Instance == null)
+            {
+                ReleasePromptInput();
+                return;
+            }
+
+            phaseChangeInProgress = true;
+            RandomizerPlugin.Instance.StartCoroutine(
+                ApplyPhaseChange(targetBlackThreadWorld)
+            );
+        }
+
+        private static IEnumerator ApplyPhaseChange(
+            bool targetBlackThreadWorld)
+        {
+            try
+            {
+                yield return ApplyPhaseChangeCore(targetBlackThreadWorld);
+            }
+            finally
+            {
+                phaseChangeInProgress = false;
+                ReleasePromptInput();
+            }
+        }
+
+        private static IEnumerator ApplyPhaseChangeCore(
+            bool targetBlackThreadWorld)
+        {
+            yield return null;
+
+            SaveState state = SaveState.Instance;
+            PlayerData playerData = PlayerData.instance;
+            GameManager gameManager = GameManager.instance;
+            if (state == null ||
+                !state.IsRoomBound ||
+                playerData == null ||
+                gameManager == null ||
+                !ReferenceEquals(state, promptState) ||
+                promptHero == null || promptHero != HeroController.instance ||
+                !playerData.atBench ||
+                !IsBellhomeSceneLoaded() ||
+                !HasBellhomeEntryGate())
+            {
+                RandomizerPlugin.Log?.LogWarning(
+                    $"[RANDOMIZER] Bellhome reload rejected: roomBound={state?.IsRoomBound}, " +
+                    $"sameSave={ReferenceEquals(state, promptState)}, sameHero={promptHero != null && promptHero == HeroController.instance}, " +
+                    $"atBench={playerData?.atBench}, scene={gameManager?.sceneName}, entryGate={HasBellhomeEntryGate()}."
+                );
+                phaseChangeInProgress = false;
+                RandomizerPlugin.Instance?.ReportBlockingError(
+                    "Bellhome's phase switch could not validate its safe " +
+                    "reload point. No story state was changed."
+                );
+                yield break;
+            }
+
+            bool previousBlackThreadWorld =
+                playerData.blackThreadWorld;
+            bool previousAct3WokeUp = playerData.act3_wokeUp;
+            bool previousToggleUnlocked =
+                state.bellhomePhaseToggleUnlocked;
+
+            state.bellhomePhaseToggleUnlocked = true;
+            playerData.blackThreadWorld = targetBlackThreadWorld;
+            // StartAct3's destructive conversion is neither queued nor replayed.
+            playerData.act3_wokeUp = true;
+
+            bool saveFinished = false;
+            bool saveSucceeded = false;
+            try
+            {
+                gameManager.SaveGame(success =>
+                {
+                    saveSucceeded = success;
+                    saveFinished = true;
+                });
+            }
+            catch (Exception ex)
+            {
+                RandomizerPlugin.Log?.LogError(
+                    "[RANDOMIZER] Bellhome phase save failed: " + ex
+                );
+                saveFinished = true;
+            }
+
+            while (!saveFinished)
+            {
+                yield return null;
+            }
+
+            if (!saveSucceeded)
+            {
+                playerData.blackThreadWorld =
+                    previousBlackThreadWorld;
+                playerData.act3_wokeUp = previousAct3WokeUp;
+                state.bellhomePhaseToggleUnlocked =
+                    previousToggleUnlocked;
+                phaseChangeInProgress = false;
+                RandomizerPlugin.Instance?.ReportBlockingError(
+                    "Bellhome's phase switch could not save safely. " +
+                    "The story phase was left unchanged."
+                );
+                yield break;
+            }
+
+            RandomizerPlugin.Log?.LogInfo(
+                "[RANDOMIZER] Bellhome shifted Pharloom to the " +
+                (targetBlackThreadWorld
+                    ? "Act 3 Black Thread"
+                    : "late Act 2") +
+                " world phase."
+            );
+
+            phaseChangeInProgress = false;
+            gameManager.ChangeToScene(
+                BellhomeSceneName,
+                BellhomeEntryGateName,
+                0f
+            );
+        }
+
+        private static bool IsBellhomeSceneLoaded()
+        {
+            GameManager gameManager = GameManager.instance;
+            return gameManager != null &&
+                   string.Equals(
+                       GameManager.GetBaseSceneName(
+                           gameManager.sceneName ?? string.Empty
+                       ),
+                       BellhomeSceneName,
+                       StringComparison.OrdinalIgnoreCase
+                   );
+        }
+
+        private static bool HasBellhomeEntryGate()
+        {
+            return Resources.FindObjectsOfTypeAll<TransitionPoint>()
+                .Any(transition =>
+                    transition != null &&
+                    transition.gameObject != null &&
+                    transition.gameObject.activeInHierarchy &&
+                    string.Equals(
+                        GameManager.GetBaseSceneName(
+                            transition.gameObject.scene.name
+                        ),
+                        BellhomeSceneName,
+                        StringComparison.OrdinalIgnoreCase
+                    ) &&
+                    string.Equals(
+                        transition.gameObject.name,
+                        BellhomeEntryGateName,
+                        StringComparison.Ordinal
+                    ) &&
+                    string.Equals(
+                        transition.targetScene,
+                        BellhartSceneName,
+                        StringComparison.Ordinal
+                    ) &&
+                    string.Equals(
+                        transition.entryPoint,
+                        BellhartEntryGateName,
+                        StringComparison.Ordinal
+                    ));
+        }
+    }
+
+    [HarmonyPatch(
+        typeof(ListenForDreamNail),
+        nameof(ListenForDreamNail.OnUpdate)
+    )]
+    internal static class BellhomeNeedolinPhaseTogglePatch
+    {
+        private static bool Prefix(ListenForDreamNail __instance)
+        {
+            return !BellhomePhaseManager
+                .TryInterceptBellhomeNeedolin(__instance);
+        }
+    }
+
+    [HarmonyPatch]
+    internal static class BellhomePromptBenchInputPatch
+    {
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            yield return AccessTools.Method(typeof(ListenForJump), "CheckInput");
+            foreach (Type type in new[] { typeof(ListenForUp), typeof(ListenForDown), typeof(ListenForLeft), typeof(ListenForRight) })
+                yield return AccessTools.Method(type, "CheckForInput");
+            yield return AccessTools.Method(typeof(ListenForAttack), "OnUpdate");
+            yield return AccessTools.Method(typeof(ListenForQuickMap), "OnUpdate");
+        }
+
+        private static bool Prefix(FsmStateAction __instance) =>
+            !BellhomePhaseManager.BlocksBenchInput(__instance);
+    }
+}

@@ -1,0 +1,66 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.IO;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+namespace SilksongRandomizer
+{
+    internal static class BossSoulState
+    {
+        internal const string SethSoul = "Soul of Seth (Progressive)";
+        internal const string SethBoss = "Boss: Shrine Guardian Seth";
+
+        private static string cachedJson;
+        private static Dictionary<string, string> cachedItems = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        internal static bool ProgressiveSeth(SaveState state) =>
+            IsEnabled(state, SethBoss) && NpcSoulState.IsEnabled(state, "Seth");
+
+        internal static bool IsEnabled(SaveState state, string boss)
+        {
+            if (state == null || string.IsNullOrEmpty(state.bossSoulsJson) || state.bossSoulsJson == "[]") return false;
+            if (cachedJson != state.bossSoulsJson)
+            {
+                cachedItems = JArray.Parse(state.bossSoulsJson).Values<string>().Distinct(StringComparer.Ordinal)
+                    .ToDictionary(name => name, name => ItemSet.GetCanonicalItemName(ItemName(name)), StringComparer.Ordinal);
+                cachedJson = state.bossSoulsJson;
+            }
+            return cachedItems.ContainsKey(boss);
+        }
+
+        internal const string Groal = "Boss: Groal the Great";
+        internal static readonly JArray Catalogue = Load();
+        private static readonly Dictionary<string, string> ItemNames = Catalogue.ToDictionary(
+            row => (string)row["boss"], row => (string)row["item"]);
+        internal static readonly string[] SupportedBosses = Catalogue.Select(row => (string)row["boss"]).ToArray();
+
+        private static JArray Load()
+        {
+            using (Stream stream = typeof(BossSoulState).Assembly.GetManifestResourceStream("SilksongRandomizer.BossSouls.json"))
+            using (var reader = new StreamReader(stream)) return JArray.Parse(reader.ReadToEnd());
+        }
+
+        internal static string ItemName(string boss) => ItemNames[boss];
+
+        internal static string NormalizeConfiguration(string json)
+        {
+            var values = JToken.Parse(string.IsNullOrEmpty(json) ? "[]" : json) as JArray;
+            if (values == null || values.Any(value => value.Type != JTokenType.String))
+                throw new FormatException("Boss Souls must list supported boss identities.");
+            var names = values.Values<string>().ToArray();
+            if (names.Distinct(StringComparer.Ordinal).Count() != names.Length ||
+                names.Any(name => !SupportedBosses.Contains(name)))
+                throw new FormatException("This seed needs a different Boss Souls build.");
+            return new JArray(names.OrderBy(name => name, StringComparer.Ordinal)).ToString(Formatting.None);
+        }
+
+        internal static bool IsMissing(SaveState state, string boss)
+        {
+            if (!IsEnabled(state, boss)) return false;
+            if (boss == SethBoss && ProgressiveSeth(state)) return state.GetReceivedItemCount(SethSoul) < 1;
+            return state.receivedItems?.Contains(cachedItems[boss]) != true;
+        }
+    }
+}

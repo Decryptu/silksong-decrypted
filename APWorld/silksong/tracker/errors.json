@@ -1,0 +1,347 @@
+{
+ "coverage_source": "map_logic.json",
+ "missing_locs": [],
+ "missing_ents": [
+  "Coral Tower Memory - door_wakeInMemory (D)",
+  "High Halls Not Implemented Room - left1 (L)",
+  "The Marrow Bellshrine - right (R)",
+  "Varga Caravan Room - right1 (R)",
+  "Whispering Vaults Totally Not White Palace - bot2 (B2)",
+  "Whispering Vaults Totally Not White Palace - bot3 (B3)",
+  "Wisp Thicket Grounds - top1 (T)"
+ ],
+ "entrance_details": [
+  {
+   "name": "Coral Tower Memory - door_wakeInMemory (D)",
+   "room": "Coral Tower Memory",
+   "scene": "Memory_Coral_Tower",
+   "id": "sands-of-karak/coral-tower-memory@d",
+   "gate": "door_wakeInMemory"
+  },
+  {
+   "name": "High Halls Not Implemented Room - left1 (L)",
+   "room": "High Halls Not Implemented Room",
+   "scene": "Cog_11",
+   "id": "high-halls/high-halls-not-implemented-room@l",
+   "gate": null
+  },
+  {
+   "name": "The Marrow Bellshrine - right (R)",
+   "room": "The Marrow Bellshrine",
+   "scene": "Bellshrine",
+   "id": "the-marrow/the-marrow-bellshrine@r",
+   "gate": null
+  },
+  {
+   "name": "Varga Caravan Room - right1 (R)",
+   "room": "Varga Caravan Room",
+   "scene": "Room_Caravan_Interior",
+   "id": "flea-caravan/varga-caravan-room@r",
+   "gate": "right1"
+  },
+  {
+   "name": "Whispering Vaults Totally Not White Palace - bot2 (B2)",
+   "room": "Whispering Vaults Totally Not White Palace",
+   "scene": "Library_07",
+   "id": "whispering-vaults/whispering-vaults-palace@b2",
+   "gate": null
+  },
+  {
+   "name": "Whispering Vaults Totally Not White Palace - bot3 (B3)",
+   "room": "Whispering Vaults Totally Not White Palace",
+   "scene": "Library_07",
+   "id": "whispering-vaults/whispering-vaults-palace@b3",
+   "gate": null
+  },
+  {
+   "name": "Wisp Thicket Grounds - top1 (T)",
+   "room": "Wisp Thicket Grounds",
+   "scene": "Wisp_02",
+   "id": "wisp-thicket/wisp-thicket-grounds@t",
+   "gate": "top1"
+  }
+ ],
+ "missing_rooms": [],
+ "missing_images": [
+  {
+   "room": "High Halls Not Implemented Room",
+   "scene": "Cog_11",
+   "image": "01-geometry/5d6dfe6f-edbf-4649-ac34-374a0a4d1326.webp"
+  },
+  {
+   "room": "Coral Tower Memory",
+   "scene": "Memory_Coral_Tower",
+   "image": "01-geometry/6133e10a-57ee-4798-843c-56f86d955a67.webp"
+  },
+  {
+   "room": "Varga Caravan Room",
+   "scene": "Room_Caravan_Interior",
+   "image": "01-geometry/0a285a48-f688-4596-a071-50dd43f5e348.webp"
+  }
+ ],
+ "image_mismatches": [],
+ "rejected_positions": [],
+ "missing_turn_ins": [],
+ "skipped_locs": [],
+ "skipped_ents": [],
+ "unpositioned_locs": [],
+ "ignored": {
+  "non_spatial_checks": [
+   "Crest Slot: Architect (Blue 1)",
+   "Crest Slot: Architect (Blue 2)",
+   "Crest Slot: Architect (Yellow 1)",
+   "Crest Slot: Architect (Yellow 2)",
+   "Crest Slot: Beast (Yellow 1)",
+   "Crest Slot: Beast (Yellow 2)",
+   "Crest Slot: Hunter (Blue 1)",
+   "Crest Slot: Hunter (Red 1)",
+   "Crest Slot: Hunter (Yellow 1)",
+   "Crest Slot: Reaper (Blue 1)",
+   "Crest Slot: Reaper (Red 1)",
+   "Crest Slot: Reaper (Yellow 1)",
+   "Crest Slot: Shaman (Blue 1)",
+   "Crest Slot: Shaman (Blue 2)",
+   "Crest Slot: Wanderer (Blue 1)",
+   "Crest Slot: Wanderer (Blue 2)",
+   "Crest Slot: Wanderer (Yellow 1)",
+   "Crest Slot: Witch (Blue 1)",
+   "Crest Slot: Witch (Blue 2)",
+   "Crest Slot: Witch (Red 1)",
+   "Crest: Hunter",
+   "Goal"
+  ],
+  "geometry_objects": {
+   "bench": 59,
+   "blockade": 157,
+   "boss": 8,
+   "collectible": 88,
+   "enemy": 2346,
+   "event": 173,
+   "gauntlet": 27,
+   "lock": 32,
+   "logic-point": 28,
+   "lore": 17,
+   "miniboss": 13,
+   "resource": 17,
+   "switch": 142,
+   "travel": 4,
+   "unknown": 66
+  },
+  "aliases_resolved_elsewhere": [
+   {
+    "room": "Greymoor Entry to Bellhart",
+    "name": "Boss: Moorwing"
+   },
+   {
+    "room": "Nyleth Fight",
+    "name": "Pollen Heart"
+   },
+   {
+    "room": "Sinner's Road Styx Room",
+    "name": "Craw Summons"
+   },
+   {
+    "room": "Songclave",
+    "name": "Wish: Pain, Anguish and Misery"
+   },
+   {
+    "room": "Grand Bellway",
+    "name": "Beastling Call"
+   },
+   {
+    "room": "Bellhart Wish Wall",
+    "name": "Savage Beastfly - Mask Shard"
+   },
+   {
+    "room": "Bellhart Wish Wall",
+    "name": "The Hidden Hunter - Mask Shard"
+   }
+  ],
+  "nonphysical_links": [
+   {
+    "name": "Bone Bottom Town - wish wall (WW)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "The Marrow Flea Caravan - flea caravan (FC)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "\"Deep Docks\" March Side Room - slab capture (SC)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Greyroot - Quest Rebirth (QR)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Belltown - wish wall (WW)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Belltown - delivery wishes (DW)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Greymoor Entry to Bellhart - flea caravan (FC)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Greymoor Towers Patio - slab capture (SC)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Last Judge Arena - flea caravan (FC)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Songclave - wish wall (WW)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bilewater Lower East Hall Secret - slab capture (SC)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Mount Fay Entrance - Dummy (DU)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Fleatopia - Flea Caravan (FC)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bellway Menu - bone bottom (BB)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bellway Menu - the marrow (TM)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bellway Menu - deep docks (DD)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bellway Menu - far fields (FF)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bellway Menu - greymoor (GM)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bellway Menu - bellhart (BH)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bellway Menu - shellwood (SW)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bellway Menu - blasted steps (BS)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bellway Menu - the slab (TS)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bellway Menu - grand bellway (GB)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bellway Menu - bilewater (BW)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bellway Menu - putrified ducts (PD)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Ventrica Menu - terminus (T)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Ventrica Menu - memorium (M)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Ventrica Menu - high halls (HH)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Ventrica Menu - first shrine (FS)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Ventrica Menu - choral chambers (CC)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Ventrica Menu - grand bellway (GB)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Ventrica Menu - underworks (UW)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Slab Capture - cage (CG)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Slab Capture - deep docks (DD)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Slab Capture - bilewater (BW)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Slab Capture - greymoor (GM)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Flea Caravan - the marrow departure (TM)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Flea Caravan - greymoor arrival (GM)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Flea Caravan - blasted steps arrival (BS)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Flea Caravan - fleatopia arrival (FT)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Flea Caravan - varga room (VR)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Flea Caravan - kratt spa  (KS)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bone Bottom Wish Wall - bone bottom (BB)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bellhart Wish Wall - bellhart (BH)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Bellhart Deliveries - bellhart (BH)",
+    "reason": "menu, scripted link or placeholder"
+   },
+   {
+    "name": "Songclave Wish Wall - songclave (SC)",
+    "reason": "menu, scripted link or placeholder"
+   }
+  ]
+ }
+}

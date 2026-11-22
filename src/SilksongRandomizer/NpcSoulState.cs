@@ -1,0 +1,130 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using UnityEngine;
+
+namespace SilksongRandomizer
+{
+    internal static class NpcSoulState
+    {
+        internal static readonly JArray Catalogue = Load();
+        private static readonly Dictionary<string, string> ItemNames = Catalogue.ToDictionary(
+            row => (string)row["name"], row => (string)row["item"] ?? "Soul of " + (string)row["name"]);
+        internal static readonly string[] Names = Catalogue.Where(row => (bool?)row["legacy"] != true).Select(row => (string)row["name"]).ToArray();
+        internal static readonly Dictionary<string, string[]> Actors = BuildIndex("actors");
+        private static readonly Dictionary<string, string[]> Interactions = BuildIndex("interactions");
+        private static readonly Dictionary<string, string[]> States = BuildIndex("states");
+        private static string cachedJson;
+        private static Dictionary<string, string> cachedItems = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        private static JArray Load()
+        {
+            using (Stream stream = typeof(NpcSoulState).Assembly.GetManifestResourceStream("SilksongRandomizer.NpcSouls.json"))
+            using (var reader = new StreamReader(stream)) return JArray.Parse(reader.ReadToEnd());
+        }
+
+        private static Dictionary<string, string[]> BuildIndex(string field)
+        {
+            var entries = new List<KeyValuePair<string, string>>();
+            foreach (JToken row in Catalogue)
+                foreach (JToken actor in row[field] ?? new JArray())
+                {
+                    string key = (string)actor["scene"] + "|" + (string)actor["path"];
+                    if (field == "states")
+                        foreach (string state in actor["states"].Values<string>())
+                            entries.Add(new KeyValuePair<string, string>(key + "|" + (string)actor["fsm"] + "|" + state, (string)row["name"]));
+                    else entries.Add(new KeyValuePair<string, string>(key, (string)row["name"]));
+                }
+            return entries.GroupBy(entry => entry.Key, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.Select(entry => entry.Value).Distinct().ToArray(), StringComparer.OrdinalIgnoreCase);
+        }
+
+        internal static bool MissingAny(SaveState state, string[] npcs)
+        {
+            foreach (string npc in npcs)
+                if (IsMissing(state, npc)) return true;
+            return false;
+        }
+
+        private static bool Find(Dictionary<string, string[]> index, string scene, string path, string suffix, out string[] npcs) =>
+            index.TryGetValue(scene + "|" + path + suffix, out npcs) ||
+            index.TryGetValue(scene + "|@" + path.Substring(path.LastIndexOf('/') + 1) + suffix, out npcs);
+
+        internal static bool TryGetActor(string scene, string path, out string[] npcs) =>
+            Find(Actors, scene, path, string.Empty, out npcs);
+
+        internal static bool CanEnterState(string scene, string path, string fsm, string name, SaveState state) =>
+            !Find(States, scene, path, "|" + fsm + "|" + name, out string[] npcs) || !MissingAny(state, npcs);
+
+        internal static void DescribeMissingSouls(string scene, string path, string fsm, string name,
+            SaveState state, List<string> missing)
+        {
+            if (Find(States, scene, path, "|" + fsm + "|" + name, out string[] npcs))
+                foreach (string npc in npcs)
+                    if (IsMissing(state, npc)) missing.Add(ItemName(npc));
+        }
+
+        internal static bool CanInteract(Transform transform)
+        {
+            SaveState state = SaveState.Instance;
+            if (string.IsNullOrEmpty(state?.npcSoulsJson) || state.npcSoulsJson == "[]") return true;
+            for (Transform current = transform; current != null; current = current.parent)
+            {
+                string path = Utils.GetHierarchyPath(current);
+                string key = current.gameObject.scene.name + "|" + path;
+                if (Interactions.TryGetValue(key, out string[] npcs) && MissingAny(SaveState.Instance, npcs)) return false;
+                if (TryGetActor(current.gameObject.scene.name, path, out npcs) && MissingAny(SaveState.Instance, npcs)) return false;
+            }
+            return true;
+        }
+
+        internal static string ItemName(string npc) => ItemNames[npc];
+
+        internal static string NormalizeConfiguration(string json)
+        {
+            var values = JToken.Parse(string.IsNullOrEmpty(json) ? "[]" : json) as JArray;
+            if (values == null || values.Any(value => value.Type != JTokenType.String))
+                throw new FormatException("NPC Souls must list supported NPC identities.");
+            string[] names = values.Values<string>().ToArray();
+            if (names.Distinct(StringComparer.Ordinal).Count() != names.Length || names.Any(name => !Catalogue.Any(row => (string)row["name"] == name)))
+                throw new FormatException("This seed needs a different NPC Souls build.");
+            return new JArray(names.Where(Names.Contains).OrderBy(name => name, StringComparer.Ordinal)).ToString(Formatting.None);
+        }
+
+        internal static bool IsEnabled(SaveState state, string npc)
+        {
+            if (state == null || string.IsNullOrEmpty(state.npcSoulsJson) || state.npcSoulsJson == "[]") return false;
+            if (cachedJson != state.npcSoulsJson)
+            {
+                cachedItems = JArray.Parse(state.npcSoulsJson).Values<string>().Distinct(StringComparer.Ordinal)
+                    .ToDictionary(name => name, name => ItemSet.GetCanonicalItemName(ItemName(name)), StringComparer.Ordinal);
+                cachedJson = state.npcSoulsJson;
+            }
+            return cachedItems.ContainsKey(npc);
+        }
+
+        internal static bool IsMissing(SaveState state, string npc)
+        {
+            if (!IsEnabled(state, npc)) return false;
+            if (npc == "Seth" && BossSoulState.ProgressiveSeth(state)) return state.GetReceivedItemCount(BossSoulState.SethSoul) < 2;
+            return state.receivedItems?.Contains(cachedItems[npc]) != true;
+        }
+
+        internal static bool FindActor(Transform transform, out GameObject actor, out string[] npcs)
+        {
+            actor = null;
+            npcs = null;
+            if (string.IsNullOrEmpty(SaveState.Instance?.npcSoulsJson) || SaveState.Instance.npcSoulsJson == "[]") return false;
+            for (Transform current = transform; current != null; current = current.parent)
+                if (TryGetActor(current.gameObject.scene.name, Utils.GetHierarchyPath(current), out npcs))
+                {
+                    actor = current.gameObject;
+                    return true;
+                }
+            return false;
+        }
+    }
+}

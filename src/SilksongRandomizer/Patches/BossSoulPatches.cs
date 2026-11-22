@@ -1,0 +1,368 @@
+using System.Collections;
+using System;
+using System.Linq;
+using Newtonsoft.Json.Linq;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using System.Collections.Generic;
+using HarmonyLib;
+using HutongGames.PlayMaker;
+using HutongGames.PlayMaker.Actions;
+
+namespace SilksongRandomizer.Patches
+{
+    internal static class BossSoulPatches
+    {
+        [HarmonyPatch(typeof(CrankPlat), "Awake")]
+        private static class CradleCrank
+        {
+            private static void Postfix(CrankPlat __instance, Transform ___crank, bool ___isComplete)
+            {
+                if (SaveState.Instance?.IsRoomBound != true || ___isComplete || ___crank == null ||
+                    __instance.gameObject.scene.name != "Cradle_03" ||
+                    !BossSoulState.IsMissing(SaveState.Instance, "Boss: Grand Mother Silk")) return;
+                Transform hub = __instance.transform.Find("art/nut");
+                if (hub == null) return;
+                Vector3 position = ___crank.position;
+                position.z = Mathf.Min(position.z, hub.position.z - 0.01f);
+                ___crank.position = position;
+            }
+        }
+
+        internal static readonly Dictionary<string, string> Battles = Index("battles");
+        private static readonly Dictionary<string, string> Actors = Index("actors");
+        private static readonly Dictionary<string, string> States = StateIndex();
+
+        private static Dictionary<string, string> Index(string field) => BossSoulState.Catalogue
+            .SelectMany(row => row[field].Select(actor => new { Key = (string)actor["scene"] + "|" + (string)actor["path"], Boss = (string)row["boss"] }))
+            .ToDictionary(row => row.Key, row => row.Boss, StringComparer.OrdinalIgnoreCase);
+
+        private static Dictionary<string, string> StateIndex()
+        {
+            var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (JToken row in BossSoulState.Catalogue)
+                foreach (JToken control in row["states"])
+                    foreach (string state in control["states"].Values<string>())
+                    {
+                        string path = control["object_name"] != null ? "@" + (string)control["object_name"] : (string)control["path"];
+                        result[(string)control["scene"] + "|" + path + "|" + (string)control["fsm"] + "|" + state] = (string)row["boss"];
+                    }
+            return result;
+        }
+
+        private static readonly Dictionary<GameObject, (SaveState state, string boss, bool travel)> Hidden =
+            new Dictionary<GameObject, (SaveState, string, bool)>();
+
+        private static bool Blocked(SaveState save, string boss) =>
+            BossSoulState.IsMissing(save, boss) || BindManager.BlocksBoss(save, boss);
+
+        internal static bool NeedsTravelSoul(SaveState state) => state != null &&
+            !state.AllowsBellwaysBeforeBellBeast && BossSoulState.IsMissing(state, "Boss: Bell Beast");
+
+        private static bool Hold(Transform transform)
+        {
+            if (SaveState.Instance == null || (!BindManager.Enabled(SaveState.Instance) &&
+                (string.IsNullOrEmpty(SaveState.Instance.bossSoulsJson) || SaveState.Instance.bossSoulsJson == "[]"))) return false;
+            for (Transform current = transform; current != null; current = current.parent)
+            {
+                GameObject actor = current.gameObject;
+                bool travel = actor.name == "Bone Beast NPC" &&
+                    actor.GetComponents<PlayMakerFSM>().Any(fsm => fsm.FsmName == "Interaction");
+                string boss;
+                if (travel)
+                {
+                    if (!NeedsTravelSoul(SaveState.Instance)) continue;
+                    boss = "Boss: Bell Beast";
+                }
+                else if (!Actors.TryGetValue(actor.scene.name + "|" + Utils.GetHierarchyPath(current), out boss) ||
+                    !Blocked(SaveState.Instance, boss)) continue;
+                if (string.Equals(actor.scene.name, "Cradle_03", StringComparison.OrdinalIgnoreCase) &&
+                    Utils.GetHierarchyPath(current) == "Boss Scene/Silk Boss")
+                    current.parent.Find("Silk_Hair")?.gameObject.SetActive(false);
+                Hidden[actor] = (SaveState.Instance, boss, travel);
+                actor.SetActive(false);
+                return true;
+            }
+            return false;
+        }
+
+        private static readonly List<GameObject> SceneActors = new List<GameObject>();
+        private static SaveState boundState;
+        private static string boundBosses, boundEnemies, boundBind;
+        private static bool initialized;
+
+        private static void Scan(Scene scene)
+        {
+            SaveState state = SaveState.Instance;
+            if (state == null) return;
+            bool bosses = BindManager.Enabled(state) || (!string.IsNullOrEmpty(state.bossSoulsJson) && state.bossSoulsJson != "[]");
+            bool enemies = !string.IsNullOrEmpty(state.enemySoulsJson) && state.enemySoulsJson != "[]";
+            if (!bosses && !enemies) return;
+            foreach (GameObject root in scene.GetRootGameObjects())
+                foreach (Transform actor in root.GetComponentsInChildren<Transform>(true))
+                {
+                    string key = scene.name + "|" + Utils.GetHierarchyPath(actor);
+                    if ((bosses && Actors.ContainsKey(key)) || (enemies && EnemySoulPatches.IsSceneActor(key)))
+                        SceneActors.Add(actor.gameObject);
+                }
+        }
+
+        internal static void Update()
+        {
+            if (!initialized)
+            {
+                initialized = true;
+                SceneManager.sceneLoaded += (scene, mode) => Scan(scene);
+            }
+            SaveState state = SaveState.Instance;
+            if (boundState != state || boundBosses != state?.bossSoulsJson || boundEnemies != state?.enemySoulsJson || boundBind != state?.bindRandomization)
+            {
+                boundState = state;
+                boundBosses = state?.bossSoulsJson;
+                boundEnemies = state?.enemySoulsJson;
+                boundBind = state?.bindRandomization;
+                SceneActors.Clear();
+                for (int i = 0; i < SceneManager.sceneCount; i++) Scan(SceneManager.GetSceneAt(i));
+            }
+            for (int i = SceneActors.Count - 1; i >= 0; i--)
+                if (SceneActors[i] == null) SceneActors.RemoveAt(i);
+                else if (SceneActors[i].activeInHierarchy && !Hold(SceneActors[i].transform))
+                    EnemySoulPatches.Hold(SceneActors[i].transform);
+            if (Hidden.Count == 0) return;
+            List<GameObject> release = null;
+            List<GameObject> retry = null;
+            foreach (var pair in Hidden)
+                if (pair.Key == null || pair.Value.state != SaveState.Instance ||
+                    (pair.Value.travel ? !NeedsTravelSoul(pair.Value.state) :
+                        !Blocked(pair.Value.state, pair.Value.boss)))
+                {
+                    if (release == null) release = new List<GameObject>();
+                    release.Add(pair.Key);
+                }
+                else if (pair.Key.activeSelf)
+                {
+                    if (retry == null) retry = new List<GameObject>();
+                    retry.Add(pair.Key);
+                }
+            if (retry != null)
+                foreach (GameObject actor in retry) actor.SetActive(false);
+            if (release == null) return;
+            foreach (GameObject actor in release)
+            {
+                var saved = Hidden[actor];
+                Hidden.Remove(actor);
+                if (actor != null && saved.state == SaveState.Instance) actor.SetActive(true);
+            }
+        }
+
+        [HarmonyPatch(typeof(GameManager), "StartAct3")]
+        private static class PreserveAct3Bosses
+        {
+            private static void Prefix(out bool?[] __state)
+            {
+                __state = null;
+                SaveState save = SaveState.Instance;
+                PlayerData data = PlayerData.instance;
+                if (data == null || string.IsNullOrEmpty(save?.bossSoulsJson) || save.bossSoulsJson == "[]") return;
+                var bosses = new HashSet<string>(JArray.Parse(save.bossSoulsJson).Values<string>(), StringComparer.Ordinal);
+                bool? Capture(string boss, bool defeated) => bosses.Contains(boss) &&
+                    save.progressionShuffle?.TryGetBossDefeat(boss, out _) != true ? (bool?)defeated : null;
+                __state = new[]
+                {
+                    Capture("Boss: Widow", data.spinnerDefeated),
+                    Capture("Boss: Fourth Chorus", data.defeatedSongGolem),
+                    Capture("Boss: Trobbio", data.defeatedTrobbio)
+                };
+            }
+
+            private static void Postfix(bool?[] __state)
+            {
+                PlayerData data = PlayerData.instance;
+                if (__state == null || data == null) return;
+                if (__state[0].HasValue) data.spinnerDefeated = __state[0].Value;
+                if (__state[1].HasValue) data.defeatedSongGolem = __state[1].Value;
+                if (__state[2].HasValue) data.defeatedTrobbio = __state[2].Value;
+            }
+        }
+
+        [HarmonyPatch(typeof(HealthManager), "OnEnable")]
+        private static class EnableActor
+        {
+            private static void Postfix(HealthManager __instance) => Hold(__instance.transform);
+        }
+
+        [HarmonyPatch(typeof(PlayMakerFSM), "OnEnable")]
+        private static class EnableActorFsm
+        {
+            private static bool Prefix(PlayMakerFSM __instance) => !Hold(__instance.transform);
+        }
+
+        internal static bool CanInteract(Transform transform)
+        {
+            if (!BindManager.CanInteract(transform)) return false;
+            for (Transform current = transform; current != null; current = current.parent)
+            {
+                string scene = current.gameObject.scene.name;
+                string path = Utils.GetHierarchyPath(current);
+                if (!CanUseReceptacle(scene, path, SaveState.Instance)) return false;
+                if (scene == "Ant_08" && path == "Battle Scene/BattleStart Inspect Region")
+                {
+                    BattleScene battle = current.GetComponentInParent<BattleScene>();
+                    if (battle != null && !EnemySoulPatches.CanStartBattle(battle)) return false;
+                }
+                if (Actors.TryGetValue(scene + "|" + path, out string boss) &&
+                    Blocked(SaveState.Instance, boss)) return false;
+            }
+            return true;
+        }
+
+        [HarmonyPatch(typeof(SendEventToRegister), nameof(SendEventToRegister.OnEnter))]
+        private static class KitchenGong
+        {
+            private static bool Prefix(SendEventToRegister __instance)
+            {
+                Fsm fsm = __instance.Fsm;
+                if (fsm?.GameObject == null || fsm.GameObject.scene.name != "Dust_Chef" ||
+                    fsm.Name != "Tink Hit Force" || __instance.State.Name != "Hit" ||
+                    Utils.GetHierarchyPath(fsm.GameObject.transform) !=
+                        "Battle Parent/Kitchen Pipe Gong/kitchen_string_offset/kitchen_string/kitchen_gong" ||
+                    !BossSoulState.IsMissing(SaveState.Instance, "Boss: Disgraced Chef Lugoli")) return true;
+                __instance.Finish();
+                return false;
+            }
+        }
+
+        internal static bool CanStartBattle(string scene, string path, SaveState state) =>
+            !Battles.TryGetValue(scene + "|" + path, out string boss) || !Blocked(state, boss);
+
+        internal static bool CanEnterState(string scene, string path, string fsm, string stateName, SaveState state)
+        {
+            string key = scene + "|" + path + "|" + fsm + "|" + stateName;
+            string objectKey = scene + "|@" + path.Substring(path.LastIndexOf('/') + 1) + "|" + fsm + "|" + stateName;
+            return ((!States.TryGetValue(key, out string boss) && !States.TryGetValue(objectKey, out boss)) ||
+                !Blocked(state, boss)) && EnemySoulPatches.CanEnterState(scene, path, fsm, stateName, state) &&
+                NpcSoulState.CanEnterState(scene, path, fsm, stateName, state);
+        }
+
+        internal static bool CanUseReceptacle(string scene, string path, SaveState state)
+        {
+            if (scene == "Ward_02" && path == "Boss Scene Parent/ward_slide_hatch/lock_machine")
+                return CanEnterState("ward_02_boss", "Boss Scene", "Control", "Idle", state);
+            if (scene == "Bone_East_18b" && path == "Boss Scene/TrapBench")
+                return CanEnterState(scene, "Boss Scene", "Control", "Unencountered", state);
+            return true;
+        }
+
+        internal static void DescribeMissingSouls(string scene, string path, string fsm, string name,
+            SaveState save, List<string> missing)
+        {
+            string key = scene + "|" + path;
+            string boss;
+            bool found = fsm == null ? Battles.TryGetValue(key, out boss) :
+                States.TryGetValue(key + "|" + fsm + "|" + name, out boss) ||
+                States.TryGetValue(scene + "|@" + path.Substring(path.LastIndexOf('/') + 1) + "|" + fsm + "|" + name, out boss);
+            if (found && BossSoulState.IsMissing(save, boss)) missing.Add(BossSoulState.ItemName(boss));
+            if (found && BindManager.BlocksBoss(save, boss)) missing.Add("Bind");
+            EnemySoulPatches.DescribeMissingSouls(scene, path, fsm, name, save, missing);
+            if (fsm != null) NpcSoulState.DescribeMissingSouls(scene, path, fsm, name, save, missing);
+        }
+
+        [HarmonyPatch(typeof(BattleScene), nameof(BattleScene.StartBattle))]
+        private static class StartBattle
+        {
+            private static bool Prefix(BattleScene __instance) =>
+                CanStartBattle(__instance.gameObject.scene.name,
+                    Utils.GetHierarchyPath(__instance.transform), SaveState.Instance);
+        }
+
+        [HarmonyPatch(typeof(BattleScene), nameof(BattleScene.DoStartBattle))]
+        private static class StartRoutine
+        {
+            private static bool Prefix(BattleScene __instance, ref IEnumerator __result)
+            {
+                if (CanStartBattle(__instance.gameObject.scene.name,
+                    Utils.GetHierarchyPath(__instance.transform), SaveState.Instance)) return true;
+                __result = Empty();
+                return false;
+            }
+
+            private static IEnumerator Empty() { yield break; }
+        }
+
+        [HarmonyPatch(typeof(FsmState), nameof(FsmState.OnEnter))]
+        private static class StartSequence
+        {
+            private static bool Prefix(FsmState __instance)
+            {
+                if (EnemySoulPatches.CancelGateClose(__instance)) return false;
+                SaveState save = SaveState.Instance;
+                bool Configured(string json) => !string.IsNullOrEmpty(json) && json != "[]";
+                if (save == null || (!BindManager.Enabled(save) && !Configured(save.bossSoulsJson) &&
+                    !Configured(save.enemySoulsJson) && !Configured(save.npcSoulsJson))) return true;
+                Fsm fsm = __instance.Fsm;
+                if (fsm?.GameObject == null || CanEnterState(fsm.GameObject.scene.name,
+                    Utils.GetHierarchyPath(fsm.GameObject.transform), fsm.Name, __instance.Name, SaveState.Instance)) return true;
+                __instance.Actions = new FsmStateAction[] { new AwaitSoul(__instance, __instance.Actions) };
+                return true;
+            }
+        }
+
+        private sealed class AwaitSoul : FsmStateAction
+        {
+            private readonly FsmState state;
+            private readonly FsmStateAction[] actions;
+            private readonly SaveState owner;
+            private SoulTriggerContact[] contacts;
+            private bool enteredState;
+            private readonly ArenaSoulDiagnostic diagnostic = new ArenaSoulDiagnostic();
+
+            internal AwaitSoul(FsmState state, FsmStateAction[] actions)
+            {
+                this.state = state;
+                this.actions = actions;
+                owner = SaveState.Instance;
+            }
+
+            public override void OnEnter()
+            {
+                contacts = actions.Select(SoulTriggerContact.Create).Where(contact => contact != null).ToArray();
+                if (contacts.Length != 0) return;
+                contacts = Fsm.States.Where(previous => previous.Transitions?.Any(t => t.ToState == state.Name) == true)
+                    .SelectMany(previous => previous.Actions).Select(SoulTriggerContact.Create)
+                    .Where(contact => contact != null).ToArray();
+                enteredState = contacts.Length != 0;
+            }
+
+            public override void OnUpdate()
+            {
+                if (owner != SaveState.Instance) return;
+                HeroController hero = contacts.Length == 0 ? null : HeroController.instance;
+                Collider2D player = hero == null ? null : hero.GetComponent<Collider2D>();
+                bool inside = false;
+                foreach (SoulTriggerContact contact in contacts)
+                {
+                    contact.Observe(player);
+                    inside |= contact.CanReplay(player);
+                }
+                bool soulsReady = CanEnterState(Fsm.GameObject.scene.name, Utils.GetHierarchyPath(Fsm.GameObject.transform),
+                    Fsm.Name, state.Name, SaveState.Instance);
+                bool outside = enteredState && !inside;
+                bool playerReady = !soulsReady || outside || !(inside || enteredState) || ArenaSoulGatePatches.PlayerReady(hero);
+                var reason = !soulsReady ? ArenaWaitReason.MissingSouls : outside ? ArenaWaitReason.OutsideArena :
+                    !playerReady ? ArenaWaitReason.PlayerNotReady : ArenaWaitReason.Resuming;
+                diagnostic.State(state, reason, owner.receivedItems?.Count ?? 0);
+                if (!soulsReady || outside || !playerReady) return;
+                Fsm.SetState(state.Name);
+                if (enteredState || Fsm.ActiveState != state) return;
+                foreach (SoulTriggerContact contact in contacts)
+                    if (contact.CanReplay(player))
+                    {
+                        contact.Replay(player);
+                        if (Fsm.ActiveState != state) break;
+                    }
+            }
+
+            public override void OnExit() => state.Actions = actions;
+        }
+    }
+}

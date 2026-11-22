@@ -1,0 +1,772 @@
+using System;
+using System.Reflection;
+using HarmonyLib;
+using HutongGames.PlayMaker;
+using UnityEngine;
+using PlayerDataBoolTestAction =
+    HutongGames.PlayMaker.Actions.PlayerDataBoolTest;
+using PlayerDataVariableTestAction =
+    HutongGames.PlayMaker.Actions.PlayerDataVariableTest;
+using SetPlayerDataBoolAction =
+    HutongGames.PlayMaker.Actions.SetPlayerDataBool;
+using SetPlayerDataVariableAction =
+    HutongGames.PlayMaker.Actions.SetPlayerDataVariable;
+using BoolTestAction = HutongGames.PlayMaker.Actions.BoolTest;
+using GlobalEnums;
+
+namespace SilksongRandomizer.Patches
+{
+    public class FleaPatches
+    {
+        private const string SavedFleaFieldTemplate = "SavedFlea_";
+        private const int OrdinaryFleaCount = 27;
+        private const int TotalFleaCount = 30;
+        private const float GoalCheckIntervalSeconds = 0.25f;
+        private static float nextGoalCheckTime;
+
+        internal const string KrattItemName = "Flea (Kratt)";
+        internal const string VogItemName = "Flea (Vog)";
+        internal const string HugeFleaItemName = "Flea (Huge Flea)";
+
+        internal const string KrattLocationName = "Flea: Greymoor - Kratt";
+        internal const string VogLocationName = "Flea: Putrified Ducts - Vog";
+        internal const string HugeFleaLocationName = "Flea: Memorium - Huge Flea";
+
+        private const string KrattReturnedFlag =
+            "CaravanLechReturnedToCaravan";
+
+        private static readonly FieldInfo SavedFleaActivatorTemplateField =
+            AccessTools.Field(typeof(SavedFleaActivator), "pdBoolTemplate");
+
+        private static readonly FieldInfo SavedFleaActivatorParentsField =
+            AccessTools.Field(typeof(SavedFleaActivator), "fleaParents");
+
+        private static readonly MethodInfo ActivateFleasMethod =
+            AccessTools.Method(
+                typeof(SavedFleaActivator),
+                "ActivateFleas",
+                new[]
+                {
+                    typeof(Transform),
+                    typeof(int),
+                    typeof(int).MakeByRefType(),
+                }
+            );
+
+        internal static int GetReceivedFleaCount()
+        {
+            SaveState state = SaveState.Instance;
+
+            return state == null ? 0 : state.GetReceivedFleaCount();
+        }
+
+        internal static bool IsNamedNpcFleaLocation(string locationName)
+        {
+            return string.Equals(
+                       locationName,
+                       KrattLocationName,
+                       StringComparison.OrdinalIgnoreCase
+                   ) ||
+                   string.Equals(
+                       locationName,
+                       VogLocationName,
+                       StringComparison.OrdinalIgnoreCase
+                   ) ||
+                   string.Equals(
+                       locationName,
+                       HugeFleaLocationName,
+                       StringComparison.OrdinalIgnoreCase
+                   );
+        }
+
+        internal static void Update()
+        {
+            if (Time.unscaledTime < nextGoalCheckTime)
+            {
+                return;
+            }
+
+            nextGoalCheckTime = Time.unscaledTime + GoalCheckIntervalSeconds;
+            SaveState.Instance?.TryCompleteFleaHuntGoal();
+        }
+
+        internal static void ReportRescuedFleas(string fieldTemplate)
+        {
+            SaveState state = SaveState.Instance;
+            if (fieldTemplate != SavedFleaFieldTemplate || state == null || !state.IsRoomBound ||
+                !state.IsRandomized(ItemType.Flea) || !PlayerData.HasInstance) return;
+
+            foreach (Location location in state.locations.Locations)
+                if (location.Type == ItemType.Flea && location.Check != null &&
+                    state.IsLocationEnabled(location.Name) && state.IsLocationInSeed(location.Name) &&
+                    !state.IsLocationChecked(location.Name) && location.Check())
+                    state.CheckLocation(location.Name);
+        }
+
+        [HarmonyPatch(typeof(QuestTargetPlayerDataBools), nameof(QuestTargetPlayerDataBools.Get), new[] { typeof(bool) })]
+        private static class ReportFleaRescuePatch
+        {
+            private static void Postfix(string ___pdFieldTemplate) => ReportRescuedFleas(___pdFieldTemplate);
+        }
+
+        internal static int GetReceivedOrdinaryFleaCount()
+        {
+            SaveState state = SaveState.Instance;
+            if (state == null)
+            {
+                return 0;
+            }
+
+            int namedNpcFleas = 0;
+            if (HasReceivedItem(state, KrattItemName))
+            {
+                namedNpcFleas++;
+            }
+            if (HasReceivedItem(state, VogItemName))
+            {
+                namedNpcFleas++;
+            }
+            if (HasReceivedItem(state, HugeFleaItemName))
+            {
+                namedNpcFleas++;
+            }
+
+            return Math.Max(
+                0,
+                Math.Min(
+                    OrdinaryFleaCount,
+                    GetReceivedFleaCount() - namedNpcFleas
+                )
+            );
+        }
+
+        private static bool HasReceivedItem(
+            SaveState state,
+            string itemName
+        )
+        {
+            return state?.receivedItems != null &&
+                   state.receivedItems.Contains(
+                       ItemSet.GetCanonicalItemName(itemName)
+                   );
+        }
+
+        private static bool IsExactAction(
+            FsmStateAction action,
+            string sceneName,
+            string objectName,
+            string fsmName,
+            string stateName
+        )
+        {
+            return action != null &&
+                   action.Owner != null &&
+                   string.Equals(
+                       action.Owner.scene.name,
+                       sceneName,
+                       StringComparison.Ordinal
+                   ) &&
+                   string.Equals(
+                       action.Owner.name,
+                       objectName,
+                       StringComparison.Ordinal
+                   ) &&
+                   action.Fsm != null &&
+                   string.Equals(
+                       action.Fsm.Name,
+                       fsmName,
+                       StringComparison.Ordinal
+                   ) &&
+                   action.State != null &&
+                   string.Equals(
+                       action.State.Name,
+                       stateName,
+                       StringComparison.Ordinal
+                   );
+        }
+
+        private static bool CanUseNpcFleaLocation(string locationName)
+        {
+            SaveState state = SaveState.Instance;
+            return state != null &&
+                   state.IsLocationEnabled(locationName) &&
+                   state.IsLocationInSeed(locationName);
+        }
+
+        private static bool ShouldExposeReceivedNpcFleaSource(
+            string itemName,
+            string locationName
+        )
+        {
+            SaveState state = SaveState.Instance;
+            return CanUseNpcFleaLocation(locationName) &&
+                   !state.IsLocationChecked(locationName) &&
+                   HasReceivedItem(state, itemName);
+        }
+
+        private static void ReportNpcFleaSource(string locationName)
+        {
+            SaveState state = SaveState.Instance;
+            if (!CanUseNpcFleaLocation(locationName) ||
+                state.IsLocationChecked(locationName))
+            {
+                return;
+            }
+
+            state.CheckLocation(locationName);
+            RandomizerPlugin.Log?.LogInfo(
+                "[RANDOMIZER] Reported named NPC Flea source: " +
+                locationName
+            );
+        }
+
+        [HarmonyPatch(typeof(GameManager), nameof(GameManager.TimePasses))]
+        private static class KrattCaravanReturnPatch
+        {
+            [HarmonyPostfix]
+            private static void Postfix()
+            {
+                SaveState state = SaveState.Instance;
+                PlayerData data = PlayerData.instance;
+                if (state == null || !state.IsRandomized(ItemType.Flea) || data == null) return;
+                data.CaravanLechReturnedToCaravan = HasReceivedItem(state, KrattItemName);
+            }
+        }
+
+        [HarmonyPatch(
+            typeof(DeactivateIfPlayerdataTrue),
+            "ForceEvaluate"
+        )]
+        private static class KrattSourceVisibilityGatePatch
+        {
+            [HarmonyPrefix]
+            [HarmonyPriority(Priority.First)]
+            private static bool Prefix(
+                DeactivateIfPlayerdataTrue __instance
+            )
+            {
+                if (!ShouldExposeReceivedNpcFleaSource(
+                        KrattItemName,
+                        KrattLocationName
+                    ) ||
+                    __instance == null ||
+                    __instance.gameObject == null ||
+                    !string.Equals(
+                        __instance.gameObject.scene.name,
+                        "Greymoor_24",
+                        StringComparison.Ordinal
+                    ) ||
+                    !string.Equals(
+                        __instance.boolName,
+                        KrattReturnedFlag,
+                        StringComparison.Ordinal
+                    ))
+                {
+                    return true;
+                }
+
+                string ownerName = __instance.gameObject.name;
+                return !string.Equals(
+                           ownerName,
+                           "caravan",
+                           StringComparison.Ordinal
+                       ) &&
+                       !string.Equals(
+                           ownerName,
+                           "Caravan Lech",
+                           StringComparison.Ordinal
+                       ) &&
+                       !string.Equals(
+                           ownerName,
+                           "Caravan Lech Strung Up",
+                           StringComparison.Ordinal
+                       );
+            }
+        }
+
+        [HarmonyPatch(
+            typeof(BoolTestAction),
+            nameof(BoolTestAction.OnEnter)
+        )]
+        private static class VogSourcePresencePatch
+        {
+            [HarmonyPrefix]
+            [HarmonyPriority(Priority.First)]
+            private static bool Prefix(BoolTestAction __instance)
+            {
+                if (!IsExactAction(
+                        __instance,
+                        "Bellway_Aqueduct",
+                        "Caravan Troupe Hunter Wild",
+                        "Dialogue",
+                        "Still Here?"
+                    ) ||
+                    !ShouldExposeReceivedNpcFleaSource(
+                        VogItemName,
+                        VogLocationName
+                    ))
+                {
+                    return true;
+                }
+
+                __instance.Fsm.Event(__instance.isTrue);
+                __instance.Finish();
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(PlayerData), "get_SavedFleasCount")]
+        private static class PlayerData_SavedFleasCount_Patch
+        {
+            private static bool Prefix(ref int __result)
+            {
+                if (SaveState.Instance == null ||
+                    !SaveState.Instance.IsRandomized(ItemType.Flea))
+                {
+                    return true;
+                }
+
+                __result = GetReceivedFleaCount();
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(PlayerData), "get_IsFleaPinMapKeyVisible")]
+        private static class PlayerData_IsFleaPinMapKeyVisible_Patch
+        {
+            private static bool Prefix(PlayerData __instance, ref bool __result)
+            {
+                if (SaveState.Instance == null ||
+                    !SaveState.Instance.IsRandomized(ItemType.Flea))
+                {
+                    return true;
+                }
+
+                if (!__instance.HasAnyFleaPin)
+                {
+                    __result = false;
+                    return false;
+                }
+
+                __result = GetReceivedFleaCount() < TotalFleaCount;
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(QuestTargetPlayerDataBools), "GetCounts")]
+        private static class QuestTargetPlayerDataBools_GetCounts_Patch
+        {
+            private static bool Prefix(
+                string ___pdFieldTemplate,
+                ref int completed,
+                ref int total
+            )
+            {
+                if (SaveState.Instance == null ||
+                    !SaveState.Instance.IsRandomized(ItemType.Flea) ||
+                    !string.Equals(
+                        ___pdFieldTemplate,
+                        SavedFleaFieldTemplate,
+                        StringComparison.Ordinal
+                    ))
+                {
+                    return true;
+                }
+
+                // FleasCollected Target drives the caravan milestones and the
+                // all-Fleas quest. All 30 are AP Flea items, including the
+                // three named NPC recruits, so native source flags must not
+                // count independently and double-credit the same Flea.
+                completed = GetReceivedFleaCount();
+                total = TotalFleaCount;
+                return false;
+            }
+        }
+
+        [HarmonyPatch(
+            typeof(PlayerDataBoolTestAction),
+            nameof(PlayerDataBoolTestAction.OnEnter)
+        )]
+        private static class NamedNpcFleaBoolSourceVisibilityPatch
+        {
+            [HarmonyPrefix]
+            private static bool Prefix(PlayerDataBoolTestAction __instance)
+            {
+                string itemName = null;
+                string locationName = null;
+                string flagName = __instance?.boolName?.Value;
+
+                if (string.Equals(
+                        flagName,
+                        "CaravanLechSaved",
+                        StringComparison.Ordinal
+                    ) &&
+                    (IsExactAction(
+                         __instance,
+                         "Greymoor_24",
+                         "Caravan Lech Strung Up",
+                         "Control",
+                         "Init"
+                     ) ||
+                     IsExactAction(
+                         __instance,
+                         "Greymoor_24",
+                         "Caravan Lech",
+                         "Custom Dialogue - Act3 Rescue",
+                         "Convo Check"
+                     )))
+                {
+                    itemName = KrattItemName;
+                    locationName = KrattLocationName;
+                }
+                else if (string.Equals(
+                             flagName,
+                             "tamedGiantFlea",
+                             StringComparison.Ordinal
+                         ) &&
+                         IsExactAction(
+                             __instance,
+                             "Arborium_08",
+                             "Giant Flea Cage",
+                             "Flea Control",
+                             "Idle"
+                         ))
+                {
+                    itemName = HugeFleaItemName;
+                    locationName = HugeFleaLocationName;
+                }
+
+                if (itemName == null ||
+                    !ShouldExposeReceivedNpcFleaSource(
+                        itemName,
+                        locationName
+                    ))
+                {
+                    return true;
+                }
+
+                __instance.Fsm.Event(__instance.isFalse);
+                __instance.Finish();
+                return false;
+            }
+        }
+
+        [HarmonyPatch(
+            typeof(PlayerDataVariableTestAction),
+            nameof(PlayerDataVariableTestAction.OnEnter)
+        )]
+        private static class VogSourceVisibilityPatch
+        {
+            [HarmonyPrefix]
+            private static bool Prefix(
+                PlayerDataVariableTestAction __instance
+            )
+            {
+                object expectedValue =
+                    __instance?.ExpectedValue?.GetValue();
+                if (!(expectedValue is bool expectsMet) ||
+                    !expectsMet ||
+                    !string.Equals(
+                        __instance.VariableName?.Value,
+                        "MetTroupeHunterWild",
+                        StringComparison.Ordinal
+                    ) ||
+                    !(IsExactAction(
+                          __instance,
+                          "Bellway_Aqueduct",
+                          "Caravan Troupe Hunter Wild",
+                          "Dialogue",
+                          "Met?"
+                      ) ||
+                      IsExactAction(
+                          __instance,
+                          "Bellway_Aqueduct",
+                          "Caravan Troupe Hunter Wild",
+                          "Dialogue",
+                          "Met? N"
+                      )) ||
+                    !ShouldExposeReceivedNpcFleaSource(
+                        VogItemName,
+                        VogLocationName
+                    ))
+                {
+                    return true;
+                }
+
+                __instance.Fsm.Event(__instance.IsNotExpectedEvent);
+                __instance.Finish();
+                return false;
+            }
+        }
+
+        [HarmonyPatch(
+            typeof(SetPlayerDataBoolAction),
+            nameof(SetPlayerDataBoolAction.OnEnter)
+        )]
+        private static class NamedNpcFleaBoolSourceCompletionPatch
+        {
+            [HarmonyPostfix]
+            private static void Postfix(SetPlayerDataBoolAction __instance)
+            {
+                if (__instance?.value == null ||
+                    !__instance.value.Value ||
+                    __instance.boolName == null ||
+                    PlayerData.instance == null)
+                {
+                    return;
+                }
+
+                string flagName = __instance.boolName.Value;
+                if (string.Equals(
+                        flagName,
+                        "CaravanLechSaved",
+                        StringComparison.Ordinal
+                    ) &&
+                    PlayerData.instance.CaravanLechSaved &&
+                    (IsExactAction(
+                         __instance,
+                         "Greymoor_24",
+                         "Caravan Lech Strung Up",
+                         "Control",
+                         "Break"
+                     ) ||
+                     IsExactAction(
+                         __instance,
+                         "Greymoor_24",
+                         "Caravan Lech",
+                         "Custom Dialogue - Act3 Rescue",
+                         "Meet"
+                     )))
+                {
+                    ReportNpcFleaSource(KrattLocationName);
+                }
+                else if (string.Equals(
+                             flagName,
+                             "tamedGiantFlea",
+                             StringComparison.Ordinal
+                         ) &&
+                         PlayerData.instance.tamedGiantFlea &&
+                         IsExactAction(
+                             __instance,
+                             "Arborium_08",
+                             "Giant Flea",
+                             "Control",
+                             "Stun"
+                         ))
+                {
+                    ReportNpcFleaSource(HugeFleaLocationName);
+                }
+            }
+        }
+
+        [HarmonyPatch(
+            typeof(SetPlayerDataVariableAction),
+            nameof(SetPlayerDataVariableAction.OnEnter)
+        )]
+        private static class VogSourceCompletionPatch
+        {
+            [HarmonyPostfix]
+            private static void Postfix(
+                SetPlayerDataVariableAction __instance
+            )
+            {
+                if (__instance == null ||
+                    !string.Equals(
+                        __instance.VariableName?.Value,
+                        "MetTroupeHunterWild",
+                        StringComparison.Ordinal
+                    ) ||
+                    !(IsExactAction(
+                          __instance,
+                          "Bellway_Aqueduct",
+                          "Caravan Troupe Hunter Wild",
+                          "Dialogue",
+                          "Meet"
+                      ) ||
+                      IsExactAction(
+                          __instance,
+                          "Bellway_Aqueduct",
+                          "Caravan Troupe Hunter Wild",
+                          "Dialogue",
+                          "Meet N"
+                      )) ||
+                    PlayerData.instance == null ||
+                    !PlayerData.instance.MetTroupeHunterWild)
+                {
+                    return;
+                }
+
+                ReportNpcFleaSource(VogLocationName);
+            }
+        }
+
+        [HarmonyPatch(typeof(SavedFleaActivator), "Start")]
+        private static class SavedFleaActivator_Start_Patch
+        {
+            private static bool Prefix(SavedFleaActivator __instance)
+            {
+                if (SaveState.Instance == null ||
+                    !SaveState.Instance.IsRandomized(ItemType.Flea) ||
+                    SavedFleaActivatorTemplateField == null ||
+                    SavedFleaActivatorParentsField == null ||
+                    ActivateFleasMethod == null)
+                {
+                    return true;
+                }
+
+                string template =
+                    SavedFleaActivatorTemplateField.GetValue(__instance) as string;
+
+                if (!string.Equals(
+                    template,
+                    SavedFleaFieldTemplate,
+                    StringComparison.Ordinal
+                ))
+                {
+                    return true;
+                }
+
+                Transform[] fleaParents =
+                    SavedFleaActivatorParentsField.GetValue(__instance)
+                        as Transform[];
+
+                if (fleaParents == null)
+                {
+                    return true;
+                }
+
+                // The named recruits have their own caravan actors. Only the
+                // ordinary AP Fleas should populate SavedFleaActivator's
+                // anonymous Flea display roots.
+                int remaining = GetReceivedOrdinaryFleaCount();
+
+                foreach (Transform fleaParent in fleaParents)
+                {
+                    object[] arguments =
+                    {
+                        fleaParent,
+                        remaining,
+                        remaining,
+                    };
+
+                    ActivateFleasMethod.Invoke(null, arguments);
+                    remaining = (int)arguments[2];
+                }
+
+                return false;
+            }
+        }
+    }
+
+    internal static class FleaFestivalPatches
+    {
+        private const string EggOfFlealiaItem =
+            "Tool: Egg of Flealia";
+        private const string FleatopiaScene = "Aqueduct_05";
+
+        private static void AwardFestivalEgg(Fsm fsm)
+        {
+            const string location = "Egg of Flealia";
+            SaveState state = SaveState.Instance;
+            PlayerData data = PlayerData.instance;
+            if (state?.IsRoomBound != true || !state.IsRandomized(ItemType.Tool) ||
+                !state.IsLocationEnabled(location) || !state.IsLocationInSeed(location) ||
+                state.IsLocationChecked(location) || data == null || !data.FleaGamesStarted ||
+                data.CaravanTroupeLocation != CaravanTroupeLocations.Aqueduct ||
+                !NpcSoulState.CanInteract(fsm.GameObject.transform)) return;
+            foreach (QuestTargetPlayerDataBools target in Resources.FindObjectsOfTypeAll<QuestTargetPlayerDataBools>())
+                if (target.name == "FleasCollected Target" && target.AllCollected)
+                {
+                    GlobalSettings.Gameplay.FleaCharmTool.Unlock(null, ToolItem.PopupFlags.None);
+                    return;
+                }
+        }
+
+        [HarmonyPatch(typeof(FsmState), nameof(FsmState.OnEnter))]
+        private static class FestivalRewardsPatch
+        {
+            private static void Prefix(FsmState __instance)
+            {
+                Fsm fsm = __instance.Fsm;
+                if (fsm?.GameObject == null || fsm.GameObject.scene.name != "Aqueduct_05_festival") return;
+                string path = Utils.GetHierarchyPath(fsm.GameObject.transform);
+                if (fsm.Name == "Control" && __instance.Name == "Intro Type" &&
+                    path == "Caravan_States/Flea Festival/Flea Game - Juggling/Flea Games Host NPC")
+                {
+                    AwardFestivalEgg(fsm);
+                    return;
+                }
+                if (fsm.Name != "Conditions" || __instance.Name != "Festival" || path != "Caravan_States") return;
+                CollectableItemPickup oil = fsm.GameObject.transform
+                    .Find("Flea Festival Outro/Flea Festival Pinata/Item Reward Final/Collectable Item Pickup Reward 3")
+                    ?.GetComponent<CollectableItemPickup>();
+                // Bind the oil before the native fling detaches it.
+                if (oil?.Item != null) oil.SetItem(oil.Item, keepPersistence: true);
+            }
+        }
+
+        private struct FleaGamesStartState
+        {
+            internal bool Apply;
+            internal bool ShouldStart;
+            internal PlayerData PlayerData;
+        }
+
+        internal static bool ShouldStartFleaGames(
+            SaveState state,
+            PlayerData playerData,
+            MapZone currentMapZone)
+        {
+            return state != null &&
+                   state.IsRoomBound &&
+                   state.IsRandomized(ItemType.Tool) &&
+                   state.receivedItems != null &&
+                   state.receivedItems.Contains(ItemSet.GetCanonicalItemName(EggOfFlealiaItem)) &&
+                   playerData != null &&
+                   playerData.blackThreadWorld &&
+                   playerData.CaravanTroupeLocation ==
+                       CaravanTroupeLocations.Aqueduct &&
+                   currentMapZone != MapZone.AQUEDUCT &&
+                   playerData.respawnScene != FleatopiaScene;
+        }
+
+        [HarmonyPatch(typeof(GameManager), nameof(GameManager.TimePasses))]
+        private static class FleaGamesStartPatch
+        {
+            private static void Prefix(
+                GameManager __instance,
+                out FleaGamesStartState __state)
+            {
+                __state = default;
+                SaveState state = SaveState.Instance;
+                PlayerData playerData = PlayerData.instance;
+                if (state == null ||
+                    !state.IsRoomBound ||
+                    !state.IsRandomized(ItemType.Tool) ||
+                    playerData == null ||
+                    playerData.FleaGamesCanStart)
+                {
+                    return;
+                }
+
+                __state.Apply = true;
+                __state.PlayerData = playerData;
+                __state.ShouldStart = ShouldStartFleaGames(
+                    state,
+                    playerData,
+                    WorldInteractionPatches.TimePassZone(__instance.GetCurrentMapZoneEnum())
+                );
+            }
+
+            private static void Postfix(FleaGamesStartState __state)
+            {
+                if (__state.Apply && __state.PlayerData != null)
+                {
+                    // Use the received Egg of Flealia for the festival.
+                    __state.PlayerData.FleaGamesCanStart =
+                        __state.ShouldStart;
+                }
+            }
+        }
+    }
+}

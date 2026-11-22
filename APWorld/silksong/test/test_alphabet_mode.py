@@ -1,0 +1,1046 @@
+from __future__ import annotations
+
+import random
+import unittest
+from collections import Counter
+from dataclasses import fields
+from types import SimpleNamespace
+from unittest import mock
+
+from test.general import setup_multiworld
+
+from BaseClasses import CollectionState, ItemClassification
+from Fill import distribute_items_restrictive
+from Options import OptionError
+from worlds.AutoWorld import call_all
+from worlds.silksong import SilksongWorld
+from worlds.silksong.items import (
+    ITEM_BASE_ID,
+    ITEM_TABLE_SOURCE,
+    ItemPoolEntry,
+    OPTIONAL_START_REPLACEMENT_ITEM,
+    TRAP_ITEM_NAMES,
+    build_item_pool_entries,
+    get_dynamic_trap_capacity,
+    item_data_table,
+    item_name_groups,
+    item_table,
+)
+from worlds.silksong.locations import location_table
+from worlds.silksong.minor_families import (
+    MINOR_FAMILY_KEYS,
+    MINOR_FAMILY_OPTION_BY_KEY,
+    get_minor_family_category,
+)
+from worlds.silksong.options import (
+    CATEGORY_OPTION_BY_LOCATION_CATEGORY,
+    AlphabetMode,
+    Goal,
+    SilksongOptions,
+    SpellingBeePhrase,
+)
+from worlds.silksong.alphabet_mode import (
+    ALPHABET_ITEM_COUNT,
+    ALPHABET_ITEM_NAMES,
+    ALPHABET_ITEM_ROWS,
+    SPELLING_BEE_GOAL_KEY,
+    parse_spelling_bee_phrase,
+    replace_filler_with_alphabet_items,
+)
+from worlds.silksong.requirements import (
+    JUNK_ONLY_LOCATIONS,
+    LOGIC_UNKNOWN_LOCATIONS,
+)
+from worlds.silksong.requirements import (
+    get_goal_requirements,
+    get_logic_item_references,
+)
+from worlds.silksong.rules import get_active_crest_slot_locations
+
+
+class TestAlphabetMode(unittest.TestCase):
+
+    @classmethod
+    def modes(cls, mode: str) -> dict[str, str]:
+        modes = {
+            category: mode
+            for category in CATEGORY_OPTION_BY_LOCATION_CATEGORY
+        }
+        modes.update(
+            {
+                get_minor_family_category(family_key): mode
+                for family_key in MINOR_FAMILY_KEYS
+            }
+        )
+        return modes
+
+    @classmethod
+    def standard_modes(cls) -> dict[str, str]:
+        vanilla_categories = {
+            "MajorKey",
+            "MemoryLocket",
+            "Craftmetal",
+            "Mossberry",
+            "PollipHeart",
+            "Silkeater",
+            "LoreTablet",
+            "BellShrine",
+            "NeedleUpgrade",
+            "PaleOil",
+        }
+        modes = {
+            category: (
+                "vanilla"
+                if category in vanilla_categories
+                else "anywhere"
+            )
+            for category in CATEGORY_OPTION_BY_LOCATION_CATEGORY
+        }
+        modes.update(
+            {
+                get_minor_family_category(family_key): "vanilla"
+                for family_key in MINOR_FAMILY_KEYS
+            }
+        )
+        modes[get_minor_family_category("rosary_cache")] = "anywhere"
+        return modes
+
+    @classmethod
+    def build_standard_goal(
+        cls,
+        goal: str,
+        *,
+        alphabet_mode: bool,
+        trap_counts: dict[str, int] | None = None,
+        trap_randomizer: random.Random | None = None,
+    ):
+        return build_item_pool_entries(
+            "Crest: Hunter",
+            trap_counts,
+            False,
+            cls.standard_modes(),
+            start_with_maps=True,
+            automatic_compass=True,
+            trap_randomizer=trap_randomizer,
+            act_one_only=(goal == "act_1"),
+            act_two_only=(goal == "act_2"),
+            start_fully_mapped=True,
+
+            retain_green_prince_key=(goal == "act_2"),
+            alphabet_mode=alphabet_mode,
+        )
+
+    @staticmethod
+    def make_world(
+        alphabet_mode: bool,
+        *,
+        goal: str = "act_3",
+        spelling_bee_phrase: str = "Hornet",
+        set_rules: bool = False,
+    ):
+        options = {
+            option_name: "anywhere"
+            for option_name in CATEGORY_OPTION_BY_LOCATION_CATEGORY.values()
+        }
+        options.update(
+            {
+                option_name: "anywhere"
+                for option_name in MINOR_FAMILY_OPTION_BY_KEY.values()
+            }
+        )
+        options["goal"] = goal
+        options["alphabet_mode"] = alphabet_mode
+        options["spelling_bee_phrase"] = spelling_bee_phrase
+        steps = ["generate_early", "create_regions", "create_items"]
+        if set_rules:
+            steps.append("set_rules")
+        multiworld = setup_multiworld(
+            SilksongWorld,
+            steps=tuple(steps),
+            seed=12345,
+            options=options,
+        )
+        return multiworld.worlds[1]
+
+    def test_letters_are_unique_progression_items_appended_after_existing_ids(
+        self,
+    ) -> None:
+        alphabet_start = ITEM_TABLE_SOURCE.index(ALPHABET_ITEM_ROWS[0])
+        self.assertEqual(ALPHABET_ITEM_COUNT, 26)
+        self.assertEqual(
+            ALPHABET_ITEM_NAMES,
+            tuple(f"Letter: {letter}" for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
+        )
+        self.assertEqual(
+            ITEM_TABLE_SOURCE[alphabet_start:alphabet_start + 26],
+            ALPHABET_ITEM_ROWS,
+        )
+        self.assertEqual(
+            [item_table[name] for name in ALPHABET_ITEM_NAMES],
+            list(range(835338, 835364)),
+        )
+        self.assertEqual(
+            item_name_groups["Alphabet Letters"],
+            set(ALPHABET_ITEM_NAMES),
+        )
+        self.assertTrue(
+            all(
+                item_data_table[name].classification
+                == ItemClassification.progression
+                for name in ALPHABET_ITEM_NAMES
+            )
+        )
+        self.assertTrue(
+            set(ALPHABET_ITEM_NAMES).isdisjoint(
+                get_logic_item_references()
+            )
+        )
+
+    def test_spelling_bee_option_and_exact_goal_rule(self) -> None:
+        option = Goal.from_any(SPELLING_BEE_GOAL_KEY)
+        self.assertEqual(option.value, Goal.option_spelling_bee)
+        self.assertEqual(option.current_key, SPELLING_BEE_GOAL_KEY)
+        self.assertEqual(Goal.default, Goal.option_act_3)
+
+        phrase = SpellingBeePhrase.from_any("Fishies")
+        self.assertEqual(phrase.value, "Fishies")
+        phrase_data = parse_spelling_bee_phrase(phrase.value)
+        self.assertEqual(
+            phrase_data,
+            (
+                "Fishies",
+                (
+                    "Letter: F",
+                    "Letter: I",
+                    "Letter: S",
+                    "Letter: H",
+                    "Letter: E",
+                ),
+            ),
+        )
+
+        requirements = get_goal_requirements(
+            SPELLING_BEE_GOAL_KEY,
+            spelling_bee_item_names=phrase_data[1],
+        )
+        self.assertEqual(len(requirements), 1)
+        requirement = requirements[0]
+        self.assertEqual(requirement.all_of, phrase_data[1])
+        self.assertFalse(requirement.any_of)
+        self.assertFalse(requirement.item_counts)
+        self.assertFalse(requirement.require_any_crest)
+
+    def test_goal_description_and_alphabet_option_order(self) -> None:
+        self.assertEqual(
+            " ".join((Goal.__doc__ or "").split()),
+            (
+                "Act 1-3 require beating the chosen act, Cursed Ending is "
+                "self explanatory, Flea Hunt is getting the set amount of "
+                "fleas and Spelling Bee is getting every unique letter in "
+                "the chosen phrase with Alphabet Rando on."
+            ),
+        )
+        option_names = tuple(
+            field.name for field in fields(SilksongOptions)
+        )
+        trap_index = option_names.index("trap_percentage")
+        self.assertLess(option_names.index("alphabet_mode"), option_names.index("trap_disguises"))
+        self.assertLess(option_names.index("trap_disguises"), trap_index)
+
+    def test_spelling_bee_keeps_every_letter_and_needs_the_phrase(self) -> None:
+        world = self.make_world(
+            False,
+            goal=SPELLING_BEE_GOAL_KEY,
+            set_rules=True,
+        )
+        slot_data = world.fill_slot_data()
+
+        self.assertTrue(world.is_alphabet_mode_enabled())
+        self.assertEqual(world.options.alphabet_mode.value, 1)
+        self.assertEqual(slot_data["goal"], SPELLING_BEE_GOAL_KEY)
+        self.assertEqual(slot_data["spelling_bee_phrase"], "Hornet")
+        self.assertTrue(slot_data["alphabet_mode"])
+        self.assertEqual(
+            Counter(
+                item.name
+                for item in world.multiworld.itempool
+                if item.name in ALPHABET_ITEM_NAMES
+            ),
+            Counter({name: 1 for name in ALPHABET_ITEM_NAMES}),
+        )
+        required_names = (
+            "Letter: H",
+            "Letter: O",
+            "Letter: R",
+            "Letter: N",
+            "Letter: E",
+            "Letter: T",
+        )
+        letter_items = {
+            item.name: item
+            for item in world.multiworld.itempool
+            if item.name in ALPHABET_ITEM_NAMES
+        }
+        self.assertTrue(
+            all(
+                letter_items[name].classification
+                == ItemClassification.progression
+                for name in required_names
+            )
+        )
+        self.assertTrue(
+            all(
+                letter_items[name].classification
+                == ItemClassification.useful
+                for name in ALPHABET_ITEM_NAMES
+                if name not in required_names
+            )
+        )
+
+        goal = world.multiworld.get_location("Goal", world.player)
+        state = CollectionState(world.multiworld)
+        for _index in range(26):
+            state.collect(world.create_item("Letter: A"))
+        self.assertFalse(goal.can_reach(state))
+
+        for item_name in required_names[:-1]:
+            state.collect(world.create_item(item_name))
+        self.assertFalse(goal.can_reach(state))
+
+        state.collect(world.create_item(required_names[-1]))
+        self.assertTrue(goal.can_reach(state))
+
+    def test_phrase_normalization_and_invalid_fallback(self) -> None:
+        self.assertEqual(
+            parse_spelling_bee_phrase("  Hornet   Nest  "),
+            (
+                "Hornet Nest",
+                (
+                    "Letter: H",
+                    "Letter: O",
+                    "Letter: R",
+                    "Letter: N",
+                    "Letter: E",
+                    "Letter: T",
+                    "Letter: S",
+                ),
+            ),
+        )
+        for invalid in ("", "   ", "Hornet2", "Act 2", "CafÃƒÂ©", "Hornet\tNest"):
+            with self.subTest(phrase=invalid):
+                self.assertIsNone(parse_spelling_bee_phrase(invalid))
+
+        world = self.make_world(
+            False,
+            goal=SPELLING_BEE_GOAL_KEY,
+            spelling_bee_phrase="Hornet2",
+        )
+        slot_data = world.fill_slot_data()
+        self.assertEqual(world.get_goal_key(), "act_2")
+        self.assertFalse(world.is_alphabet_mode_enabled())
+        self.assertEqual(slot_data["goal"], "act_2")
+        self.assertEqual(slot_data["spelling_bee_phrase"], "")
+        self.assertFalse(slot_data["alphabet_mode"])
+
+        alphabet_world = self.make_world(
+            True,
+            goal=SPELLING_BEE_GOAL_KEY,
+            spelling_bee_phrase="Hornet2",
+        )
+        self.assertEqual(alphabet_world.get_goal_key(), "act_2")
+        self.assertTrue(alphabet_world.is_alphabet_mode_enabled())
+        self.assertEqual(
+            Counter(
+                item.name
+                for item in alphabet_world.multiworld.itempool
+                if item.name in ALPHABET_ITEM_NAMES
+            ),
+            Counter({name: 1 for name in ALPHABET_ITEM_NAMES}),
+        )
+
+    def test_disabled_mode_keeps_the_pool_unchanged(self) -> None:
+        modes = self.modes("anywhere")
+        arguments = {
+            "starting_crest_item": "Crest: Hunter",
+            "trap_counts": {},
+            "split_dash_and_sprint": False,
+            "category_modes": modes,
+        }
+        implicit = build_item_pool_entries(**arguments)
+        explicit = build_item_pool_entries(
+            **arguments,
+            alphabet_mode=False,
+        )
+
+        self.assertEqual(implicit, explicit)
+        self.assertFalse(
+            any(entry.name in ALPHABET_ITEM_NAMES for entry in implicit)
+        )
+        self.assertEqual(
+            get_dynamic_trap_capacity(modes),
+            get_dynamic_trap_capacity(modes, alphabet_mode=False),
+        )
+
+    def test_core_replacements_use_repeatable_filler(self) -> None:
+        world = self.make_world(False)
+        filler = world.create_filler()
+
+        self.assertEqual(filler.name, OPTIONAL_START_REPLACEMENT_ITEM)
+        self.assertFalse(filler.advancement)
+
+    def test_enabled_mode_replaces_filler_and_preserves_every_lane(
+        self,
+    ) -> None:
+        modes = self.modes("anywhere")
+        arguments = {
+            "starting_crest_item": "Crest: Hunter",
+            "trap_counts": {},
+            "split_dash_and_sprint": False,
+            "category_modes": modes,
+        }
+        baseline = build_item_pool_entries(**arguments)
+        alphabet = build_item_pool_entries(
+            **arguments,
+            alphabet_mode=True,
+        )
+        replaced_pairs = [
+            (before, after)
+            for before, after in zip(baseline, alphabet)
+            if before != after
+        ]
+
+        self.assertEqual(len(baseline), len(alphabet))
+        self.assertEqual(len(replaced_pairs), 26)
+        self.assertEqual(
+            {after.name for _before, after in replaced_pairs},
+            set(ALPHABET_ITEM_NAMES),
+        )
+        self.assertTrue(
+            all(
+                item_data_table[before.name].classification
+                == ItemClassification.filler
+                for before, _after in replaced_pairs
+            )
+        )
+        self.assertTrue(
+            all(
+                (
+                    before.source_category,
+                    before.placement_category,
+                )
+                == (
+                    after.source_category,
+                    after.placement_category,
+                )
+                for before, after in replaced_pairs
+            )
+        )
+        self.assertEqual(
+            Counter(
+                (entry.source_category, entry.placement_category)
+                for entry in baseline
+            ),
+            Counter(
+                (entry.source_category, entry.placement_category)
+                for entry in alphabet
+            ),
+        )
+
+    def test_capacity_aware_replacement_preserves_safe_lane_reserves(
+        self,
+    ) -> None:
+        lane_counts = {
+            None: 2,
+            "Crest": 1,
+            "Map": 23,
+            "Quest": 22,
+            "Skill": 1,
+        }
+        capacities = {
+            None: 0,
+            "Crest": 1,
+            "Map": 21,
+            "Quest": 8,
+            "Skill": 0,
+        }
+        entries = [
+            ItemPoolEntry("Rosaries (60)", str(lane), lane)
+            for lane, count in lane_counts.items()
+            for _copy_index in range(count)
+        ]
+        original_identities = Counter(
+            (entry.source_category, entry.placement_category)
+            for entry in entries
+        )
+
+        replace_filler_with_alphabet_items(
+            entries,
+            lambda _name: True,
+            random.Random(45001),
+            capacities,
+            lambda _name: True,
+        )
+
+        letter_counts = Counter(
+            entry.placement_category
+            for entry in entries
+            if entry.name in ALPHABET_ITEM_NAMES
+        )
+        self.assertEqual(sum(letter_counts.values()), 26)
+        for lane, count in letter_counts.items():
+            self.assertLessEqual(count, capacities[lane])
+        self.assertEqual(
+            Counter(
+                (entry.source_category, entry.placement_category)
+                for entry in entries
+            ),
+            original_identities,
+        )
+
+    def test_capacity_aware_replacement_rejects_unsafe_shortage(
+        self,
+    ) -> None:
+        entries = [
+            ItemPoolEntry("Rosaries (60)", "Map", "Map")
+            for _copy_index in range(26)
+        ]
+        with self.assertRaisesRegex(
+            OptionError,
+            r"needs 26 progression-safe filler rewards.*only 25",
+        ):
+            replace_filler_with_alphabet_items(
+                entries,
+                lambda _name: True,
+                random.Random(45001),
+                {"Map": 25},
+                lambda _name: True,
+            )
+
+    def test_short_spelling_bee_phrase_only_reserves_required_letters(
+        self,
+    ) -> None:
+        entries = [
+            ItemPoolEntry("Rosaries (60)", "Quest", "Quest")
+            for _copy_index in range(26)
+        ]
+        required_letters = {
+            "Letter: H",
+            "Letter: O",
+            "Letter: R",
+            "Letter: N",
+            "Letter: E",
+            "Letter: T",
+        }
+
+        replace_filler_with_alphabet_items(
+            entries,
+            lambda _name: True,
+            random.Random(45001),
+            {"Quest": len(required_letters)},
+            required_letters.__contains__,
+        )
+
+        self.assertEqual(
+            Counter(entry.name for entry in entries),
+            Counter({name: 1 for name in ALPHABET_ITEM_NAMES}),
+        )
+
+    @staticmethod
+    def mixed_fuzzer_options(
+        needle_upgrade_mode: str = "vanilla",
+    ) -> dict[str, object]:
+        return {
+            "goal": "act_3",
+            "starting_crest": "hunter",
+            "early_sprint": False,
+            "split_dash_and_sprint": False,
+            "trails_end_requirement": "owned_maps",
+            "scuttlebrace_logic": "easy",
+            "start_with_maps": True,
+            "start_fully_mapped": True,
+            "automatic_compass": True,
+            "bellway_access": "randomized_stations",
+            "skill_randomization": "anywhere",
+            "tool_randomization": "vanilla",
+            "silk_skill_randomization": "vanilla",
+            "crest_randomization": "anywhere",
+            "flea_randomization": "vanilla",
+            "crest_slot_randomization": "vanilla",
+            "mask_shard_randomization": "vanilla",
+            "spool_fragment_randomization": "anywhere",
+            "silk_heart_randomization": "vanilla",
+            "bellway_randomization": "vanilla",
+            "ventrica_randomization": "anywhere",
+            "map_randomization": "anywhere",
+            "needle_upgrade_randomization": needle_upgrade_mode,
+            "pale_oil_randomization": "anywhere",
+            "melody_randomization": "vanilla",
+            "pin_randomization": "anywhere",
+            "relic_randomization": "vanilla",
+            "crafting_kit_randomization": "anywhere",
+            "major_key_randomization": "anywhere",
+            "memory_locket_randomization": "vanilla",
+            "craftmetal_randomization": "vanilla",
+            "mossberry_randomization": "vanilla",
+            "pollip_heart_randomization": "vanilla",
+            "silkeater_randomization": "vanilla",
+            "tool_pouch_randomization": "anywhere",
+            "lore_tablet_randomization": "vanilla",
+            "frayed_rosary_string_randomization": "vanilla",
+            "rosary_string_randomization": "vanilla",
+            "rosary_necklace_randomization": "vanilla",
+            "heavy_rosary_necklace_randomization": "vanilla",
+            "pale_rosary_necklace_randomization": "anywhere",
+            "shard_bundle_randomization": "vanilla",
+            "beast_shard_randomization": "vanilla",
+            "pristine_core_randomization": "vanilla",
+            "rosary_cache_randomization": "vanilla",
+            "shell_shard_cache_randomization": "vanilla",
+            "boss_sanity": "vanilla",
+            "bell_shrine_sanity": "vanilla",
+            "wish_sanity": "anywhere",
+            "alphabet_mode": True,
+            "trap_percentage": 37,
+            "stagger_trap_weight": 48,
+            "rosary_spill_trap_weight": 99,
+            "darkness_trap_weight": 43,
+            "cursed_crest_trap_weight": 22,
+            "muckmaggot_status_trap_weight": 21,
+            "naked_trap_weight": 15,
+        }
+
+    def test_mixed_fuzzer_capacity_keeps_every_letter_pooled(
+        self,
+    ) -> None:
+        multiworld = setup_multiworld(
+            SilksongWorld,
+            steps=("generate_early", "create_regions", "create_items"),
+            seed=312492097,
+            options=self.mixed_fuzzer_options(),
+        )
+        player = 1
+        letters = [
+            item
+            for item in multiworld.itempool
+            if item.name in ALPHABET_ITEM_NAMES
+        ]
+        quest_items = [
+            item
+            for item in multiworld.itempool
+            if getattr(item, "silksong_placement_category", None) is None
+        ]
+
+        self.assertEqual(
+            Counter(item.name for item in letters),
+            Counter({name: 1 for name in ALPHABET_ITEM_NAMES}),
+        )
+        self.assertFalse(any(
+            item.name in ALPHABET_ITEM_NAMES
+            for item in multiworld.precollected_items[player]
+        ))
+        restricted = sum(location.name in (LOGIC_UNKNOWN_LOCATIONS | JUNK_ONLY_LOCATIONS)
+                         for location in multiworld.get_locations(player)
+                         if location.address is not None and location.item is None
+                         and getattr(location, "silksong_placement_category", None) is None)
+        self.assertGreaterEqual(sum(not item.advancement for item in quest_items), restricted)
+        self.assertEqual(
+            Counter(
+                getattr(item, "silksong_placement_category", None)
+                for item in multiworld.itempool
+            ),
+            Counter(
+                getattr(location, "silksong_placement_category", None)
+                for location in multiworld.get_locations(player)
+                if location.address is not None and location.item is None
+            ),
+        )
+
+        for step in (
+            "set_rules",
+            "connect_entrances",
+            "generate_basic",
+            "pre_fill",
+        ):
+            call_all(multiworld, step)
+
+    def test_architect_mixed_options_keep_a_playable_opening(self) -> None:
+        options = self.mixed_fuzzer_options()
+        options["starting_crest"] = "architect"
+        multiworld = setup_multiworld(SilksongWorld, seed=312492097, options=options)
+        distribute_items_restrictive(multiworld)
+        call_all(multiworld, "post_fill")
+        self.assertTrue(multiworld.can_beat_game())
+        self.assertTrue(multiworld.fulfills_accessibility())
+
+    def test_needle_upgrade_removes_pinmaster_from_capacity_demand(
+        self,
+    ) -> None:
+        multiworld = setup_multiworld(
+            SilksongWorld,
+            steps=("generate_early", "create_regions", "create_items"),
+            seed=312492097,
+            options=self.mixed_fuzzer_options("anywhere"),
+        )
+        player = 1
+        with self.assertRaises(KeyError):
+            multiworld.get_location("Wish: Pinmaster's Oil", player)
+        quest_locations = [
+            location
+            for location in multiworld.get_locations(player)
+            if (
+                location.address is not None
+                and location.item is None
+                and getattr(
+                    location,
+                    "silksong_placement_category",
+                    None,
+                ) is None
+            )
+        ]
+        quest_demand = sum(
+            location.name
+            in (LOGIC_UNKNOWN_LOCATIONS | JUNK_ONLY_LOCATIONS)
+            for location in quest_locations
+        )
+        quest_items = [
+            item
+            for item in multiworld.itempool
+            if getattr(item, "silksong_placement_category", None) is None
+        ]
+
+        self.assertGreater(quest_demand, 0)
+        self.assertGreaterEqual(
+            sum(not item.advancement for item in quest_items),
+            quest_demand,
+        )
+        self.assertEqual(
+            sum(item.name in ALPHABET_ITEM_NAMES for item in multiworld.itempool),
+            26,
+        )
+        self.assertFalse(any(
+            item.name in ALPHABET_ITEM_NAMES
+            for item in multiworld.precollected_items[player]
+        ))
+
+    def test_standard_goals_have_all_letters_without_new_locations(
+        self,
+    ) -> None:
+        for goal in ("act_1", "act_2", "act_3"):
+            with self.subTest(goal=goal):
+                baseline = self.build_standard_goal(
+                    goal,
+                    alphabet_mode=False,
+                )
+                alphabet = self.build_standard_goal(
+                    goal,
+                    alphabet_mode=True,
+                )
+                self.assertEqual(len(baseline), len(alphabet))
+                self.assertGreaterEqual(
+                    sum(item_data_table[entry.name].classification == ItemClassification.filler
+                        for entry in baseline),
+                    ALPHABET_ITEM_COUNT,
+                )
+                self.assertEqual(
+                    Counter(
+                        entry.name
+                        for entry in alphabet
+                        if entry.name in ALPHABET_ITEM_NAMES
+                    ),
+                    Counter({name: 1 for name in ALPHABET_ITEM_NAMES}),
+                )
+        self.assertTrue(
+            set(ALPHABET_ITEM_NAMES).isdisjoint(location_table)
+        )
+
+    def test_full_trap_pools_keep_all_letters(self) -> None:
+        from ..items import _is_replaceable_filler
+        modes = self.standard_modes()
+        for goal in ("act_1", "act_2", "act_3"):
+            with self.subTest(goal=goal):
+                capacity = get_dynamic_trap_capacity(
+                    modes,
+                    start_with_maps=True,
+                    automatic_compass=True,
+                    act_one_only=(goal == "act_1"),
+                    act_two_only=(goal == "act_2"),
+                    start_fully_mapped=True,
+
+                    retain_green_prince_key=(goal == "act_2"),
+                    alphabet_mode=True,
+                )
+                trap_counts = {
+                    trap_name: (
+                        capacity
+                        if trap_name == "Stagger Trap"
+                        else 0
+                    )
+                    for trap_name in TRAP_ITEM_NAMES
+                }
+                entries = self.build_standard_goal(
+                    goal,
+                    alphabet_mode=True,
+                    trap_counts=trap_counts,
+                    trap_randomizer=random.Random(12345),
+                )
+
+                self.assertEqual(
+                    sum(
+                        entry.name in ALPHABET_ITEM_NAMES
+                        for entry in entries
+                    ),
+                    26,
+                )
+                self.assertEqual(
+                    sum(entry.name == "Stagger Trap" for entry in entries),
+                    capacity,
+                )
+                self.assertTrue(all(
+                    not _is_replaceable_filler(entry.name)
+                    for entry in entries
+                    if item_data_table[entry.name].classification == ItemClassification.filler
+                ))
+
+    def test_sparse_pool_has_a_clear_generation_error(self) -> None:
+        modes = self.modes("vanilla")
+        with self.assertRaisesRegex(
+            OptionError,
+            r"alphabet_mode needs 26 filler rewards.*only 0 are available",
+        ):
+            build_item_pool_entries(
+                "Crest: Hunter",
+                {},
+                False,
+                modes,
+                alphabet_mode=True,
+            )
+
+    def test_pre_fill_rejects_progression_capacity_shortage(self) -> None:
+        progression_items = (
+            SimpleNamespace(advancement=True),
+            SimpleNamespace(advancement=True),
+        )
+        multiworld = SimpleNamespace(
+            worlds={
+                1: SimpleNamespace(
+                    game=SilksongWorld.game,
+                    player=1,
+                    options=SimpleNamespace(accessibility="full"),
+                    get_category_mode=lambda _category: "vanilla",
+                    is_alphabet_mode_enabled=lambda: True,
+                )
+            },
+            itempool=[
+                *progression_items,
+                SimpleNamespace(advancement=False),
+            ],
+            state=object(),
+            get_unfilled_locations=lambda: (
+                SimpleNamespace(
+                    can_fill=lambda _state, item, check_access: (
+                        item.advancement
+                    )
+                ),
+                SimpleNamespace(
+                    can_fill=lambda _state, _item, check_access: False
+                ),
+                SimpleNamespace(
+                    can_fill=lambda _state, _item, check_access: False
+                ),
+            ),
+        )
+        world = multiworld.worlds[1]
+        world.get_goal_key = lambda: "act_2"
+        world._finalize_progression_shuffle = lambda: None
+        multiworld.get_game_worlds = lambda _game: (world,)
+        multiworld.get_items = lambda: ()
+        world_module = __import__(
+            SilksongWorld.__module__,
+            fromlist=("validate_opening",),
+        )
+        with (
+            mock.patch.object(world_module, "validate_opening"),
+            mock.patch(SilksongWorld.__module__ + ".category_fill.validate_flea_capacity"),
+            mock.patch(SilksongWorld.__module__ + ".category_fill.validate_excluded_filler"),
+            self.assertRaisesRegex(
+                OptionError,
+                r"2 progression items for 1 progression-legal locations",
+            ),
+        ):
+            SilksongWorld.stage_pre_fill(multiworld)
+
+    def test_pre_fill_rejects_non_alphabet_capacity_shortage(self) -> None:
+        progression_items = (
+            SimpleNamespace(advancement=True),
+            SimpleNamespace(advancement=True),
+        )
+        multiworld = SimpleNamespace(
+            worlds={
+                1: SimpleNamespace(
+                    game=SilksongWorld.game,
+                    player=1,
+                    options=SimpleNamespace(accessibility="full"),
+                    get_category_mode=lambda _category: "vanilla",
+                    is_alphabet_mode_enabled=lambda: False,
+                )
+            },
+            itempool=[
+                *progression_items,
+                SimpleNamespace(advancement=False),
+            ],
+            state=object(),
+            get_unfilled_locations=lambda: (
+                SimpleNamespace(
+                    can_fill=lambda _state, item, check_access: (
+                        item.advancement
+                    )
+                ),
+                SimpleNamespace(
+                    can_fill=lambda _state, _item, check_access: False
+                ),
+                SimpleNamespace(
+                    can_fill=lambda _state, _item, check_access: False
+                ),
+            ),
+        )
+        world = multiworld.worlds[1]
+        world.get_goal_key = lambda: "act_2"
+        world._finalize_progression_shuffle = lambda: None
+        multiworld.get_game_worlds = lambda _game: (world,)
+        multiworld.get_items = lambda: ()
+        world_module = __import__(
+            SilksongWorld.__module__,
+            fromlist=("validate_opening",),
+        )
+        with (
+            mock.patch.object(world_module, "validate_opening"),
+            mock.patch(SilksongWorld.__module__ + ".category_fill.validate_flea_capacity"),
+            mock.patch(SilksongWorld.__module__ + ".category_fill.validate_excluded_filler"),
+            self.assertRaises(OptionError) as error,
+        ):
+            SilksongWorld.stage_pre_fill(multiworld)
+
+        self.assertIn(
+            "2 progression items for 1 progression-legal locations",
+            str(error.exception),
+        )
+        self.assertNotIn("Disable Alphabet Mode", str(error.exception))
+
+    def test_world_generation_uses_the_option_and_keeps_pool_balance(
+        self,
+    ) -> None:
+        world = self.make_world(True)
+
+        self.assertEqual(
+            Counter(
+                item.name
+                for item in world.multiworld.itempool
+                if item.name in ALPHABET_ITEM_NAMES
+            ),
+            Counter({name: 1 for name in ALPHABET_ITEM_NAMES}),
+        )
+        self.assertEqual(
+            len(world.multiworld.itempool),
+            sum(
+                location.address is not None and location.item is None
+                for location in world.multiworld.get_locations()
+            ),
+        )
+        self.assertEqual(
+            sum(
+                item.name in TRAP_ITEM_NAMES
+                for item in world.multiworld.itempool
+            ),
+            sum(world.resolve_trap_counts().values()),
+        )
+
+    def test_filled_crest_slots_export_non_locket_item_flags(self) -> None:
+        world = self.make_world(False, set_rules=True)
+        multiworld = world.multiworld
+        call_all(multiworld, "connect_entrances")
+        call_all(multiworld, "generate_basic")
+        call_all(multiworld, "pre_fill")
+        distribute_items_restrictive(multiworld)
+        call_all(multiworld, "post_fill")
+
+        expected = {
+            location.name: int(location.item.classification)
+            for location in get_active_crest_slot_locations(world)
+            if location.item is not None
+            and location.item.name != "Memory Locket"
+        }
+        self.assertEqual(
+            world.fill_slot_data()["crest_slot_item_flags"],
+            expected,
+        )
+
+    def test_slot_data_and_item_ownership_are_per_player(self) -> None:
+        world = self.make_world(False)
+        self.assertFalse(world.fill_slot_data()["alphabet_mode"])
+        world.options.alphabet_mode = AlphabetMode(1)
+        self.assertTrue(world.fill_slot_data()["alphabet_mode"])
+
+        multiworld = setup_multiworld(
+            [SilksongWorld, SilksongWorld], steps=("generate_early",),
+            seed=12345, options=[{"alphabet_mode": True, "goal": "act_3",
+                                  "rosary_cache_randomization": "anywhere"},
+                                 {"goal": "spelling_bee", "spelling_bee_phrase": "A",
+                                  "rosary_cache_randomization": "anywhere"}],
+        )
+        first_world, second_world = multiworld.worlds[1], multiworld.worlds[2]
+        first_letter = first_world.create_item("Letter: A")
+        second_letter = second_world.create_item("Letter: A")
+
+        self.assertEqual(first_letter.code, second_letter.code)
+        self.assertEqual(first_letter.player, 1)
+        self.assertEqual(second_letter.player, 2)
+        self.assertEqual(first_letter.classification, ItemClassification.useful)
+        self.assertEqual(second_letter.classification, ItemClassification.progression)
+
+    def test_progression_letter_fill_matrix_is_beatable(self) -> None:
+        cases = (
+            (SPELLING_BEE_GOAL_KEY, False),
+            ("act_1", True),
+            ("act_2", True),
+            ("act_3", True),
+        )
+        for goal_key, alphabet_mode in cases:
+            with self.subTest(
+                goal=goal_key,
+                alphabet_mode=alphabet_mode,
+            ):
+                world = self.make_world(
+                    alphabet_mode,
+                    goal=goal_key,
+                    set_rules=True,
+                )
+                multiworld = world.multiworld
+                call_all(multiworld, "connect_entrances")
+                call_all(multiworld, "generate_basic")
+                call_all(multiworld, "pre_fill")
+                distribute_items_restrictive(multiworld)
+                call_all(multiworld, "post_fill")
+                self.assertTrue(multiworld.can_beat_game())
+
+    def test_useful_letters_do_not_reserve_progression_slots(self) -> None:
+        entries = [ItemPoolEntry("Rosaries (10)", "Currency", None) for _ in range(30)]
+        replace_filler_with_alphabet_items(
+            entries,
+            lambda name: name == "Rosaries (10)",
+            max_replacements_by_placement_category={None: 30},
+            replacement_is_advancement=lambda name: False,
+        )
+        self.assertEqual(
+            Counter(entry.name for entry in entries if entry.name in ALPHABET_ITEM_NAMES),
+            Counter({name: 1 for name in ALPHABET_ITEM_NAMES}),
+        )
+        self.assertEqual(sum(entry.name == "Rosaries (10)" for entry in entries), 4)
+
+    def test_option_defaults_off(self) -> None:
+        self.assertEqual(AlphabetMode.default, 0)
+        self.assertEqual(AlphabetMode.from_any(False).value, 0)
+        self.assertEqual(AlphabetMode.from_any(True).value, 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
