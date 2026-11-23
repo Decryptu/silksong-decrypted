@@ -1,5 +1,6 @@
-const KEY = "silksong-decrypted-setup-v1";
+const KEY = "silksong-decrypted-setup-v2";
 const UP = "https://github.com/Batatvideogames/silksong-archipelago-randomizer";
+const DOWNLOAD = "https://github.com/Decryptu/silksong-decrypted/releases/download/v0.5.5-rc.1";
 const CODE = "01a1bd74-2ab1-af6c-d1e3-7d4c97d62492";
 
 const STEPS = {
@@ -16,11 +17,10 @@ const STEPS = {
   ],
   manual: [
     ["mn-bep", "Install BepInEx", `Extract <a href="https://github.com/BepInEx/BepInEx/releases">BepInEx 5</a> next to the game .exe. Launch once, then close.`],
-    ["mn-plugin", "Add the randomizer", `From the <a href="${UP}/releases/latest">latest release</a>, merge the BepInEx folder into the game folder.`]
+    ["mn-plugin", "Add the randomizer", `Extract the <a href="${DOWNLOAD}/SilksongDecrypted-0.5.5-rc.1-336c6bf.zip">Silksong Decrypted plugin ZIP</a> into the game folder.`]
   ],
   common: [
     ["ap-launcher", "Install Archipelago", `Get the <a href="https://github.com/ArchipelagoMW/Archipelago/releases/latest">Archipelago launcher</a> (0.6.8 or newer).`],
-    ["ap-world", "Add the Silksong world", `Drag the <code>.apworld</code> from the <a href="${UP}/releases/latest">latest release</a> onto the launcher, then restart it.`],
     ["ap-yaml", "Make your options file", "Options Creator → Hollow Knight: Silksong → Export. Send it to your host, or keep it if you host."]
   ],
   host: [
@@ -29,7 +29,7 @@ const STEPS = {
     ["h-room", "Open a room", `Upload the .zip at <a href="https://archipelago.gg/uploads">archipelago.gg/uploads</a> and share the room address.`]
   ],
   join: [
-    ["j-connect", "Connect in game", "Start Silksong, open a new save, and enter the room address, slot name, and password."],
+    ["j-connect", "Connect in game", "Launch Silksong, open the F3 panel, and enter the room host, port, assigned slot name, and password if required. Connect and select an empty save slot."],
     ["j-stuck", "Know the escape key", "Stuck? Press F4 to warp to a home point."]
   ]
 };
@@ -47,7 +47,16 @@ function render() {
   const ready = state.role && state.install;
   $("hint").hidden = !!ready;
   const list = ready
-    ? [...STEPS[state.install], ...STEPS.common, ...(state.role === "host" ? STEPS.host : []), ...STEPS.join]
+    ? [
+        ...STEPS[state.install],
+        STEPS.common[0],
+        ["ap-world", "Add the matching Silksong world", state.install === "manual"
+          ? `Drag <a href="${DOWNLOAD}/silksong.apworld">silksong.apworld</a> onto the launcher, then restart it.`
+          : `Install the <code>.apworld</code> from the <a href="${UP}/releases/latest">upstream release</a> that matches your plugin, then restart the launcher.`],
+        STEPS.common[1],
+        ...(state.role === "host" ? STEPS.host : []),
+        ...STEPS.join
+      ]
     : [];
   $("steps").innerHTML = list.map(([id, t, d]) =>
     `<li><label><input type="checkbox" data-id="${id}" ${state.done[id] ? "checked" : ""}><div><b>${t}</b><span>${d}</span></div></label></li>`).join("");

@@ -38,6 +38,12 @@ With the packaged APWorld installed, run the generator from the Archipelago dire
 
 The Release plugin built with .NET SDK 9.0.321 and BepInEx 5.4.23.3, and loaded in Silksong 1.0.30000. In the two-player room, the game sent the opening Crest check, applied a Flea from a simulated check on the second Archipelago slot, and reconnected through the F3 menu. Saving and quitting to the title screen, then reopening the test save from disk, resumed gameplay with the same Archipelago slot and seed.
 
+## Windows release candidate
+
+The `0.5.5-rc.1` plugin ZIP and `silksong.apworld` were packaged from revision `336c6bf` with SHA-256 checksums. An isolated Archipelago 0.6.8 install generated solo and two-player rooms from seed `12345` using the packaged world, and both room archives passed ZIP integrity checks.
+
+The extracted plugin joined the two-player room on Silksong 1.0.30000 with BepInEx 5.4.23.3. A fresh save sent the opening Hunter Crest check and received Shaman Crest. A controlled Delver's Drill check from Lace delivered a Flea to Hornet, which was recorded in the native save alongside the opening check. A local virtual controller supplied the opening held input. After a process restart with only the release package installed, Hornet reconnected and loaded the same save into Moss Grotto. See [player setup](SETUP.md) for the manual install and room workflow.
+
 ## Map tracker smoke test
 
 On Silksong 1.0.30000, the Release plugin connected to the two-player seed `12345` on Archipelago 0.6.8. A diagnostic probe exercised the live map marker filters in the dedicated test save. The Bone Bottom spool fragment moved from Reachable to Checked after the server recorded it. After Swift Step and Cling Grip arrived, the number of visible reachable checks increased from 12 to 13. Turning off F6 logic restored the full unchecked view with a reachability filter selected. Reconnecting through F3 preserved the three mapped checked locations and the filter results.
@@ -86,7 +92,9 @@ game: 'Hollow Knight: Silksong'
   shell_shard_cache_randomization: anywhere
 ```
 
-Verify that Mossgrub is absent before breaking Moss Grotto Shell Shard Cache #2. After the cache delivers its soul, revisit the room and verify that defeating Mossgrub sends the first-kill check and grants left Cling Grip. Continue through the shuffled route to five Fleas and confirm Archipelago records the goal. Use normal gameplay throughout, with scripted checks and diagnostic warps disabled.
+On Silksong 1.0.30000, a fresh randomizer save on seed `54321` reached Moss Grotto East from Bone Bottom. Mossgrub was absent along the approach before the soul check. A jumping upward strike broke Moss Grotto Shell Shard Cache #2 and Archipelago delivered Soul of Mossgrub. After leaving and re-entering the room, the enemy appeared. Defeating it sent the first-kill check and delivered left Cling Grip. The run used a local virtual gamepad for ordinary game input, with scripted checks and diagnostic warps disabled. Both checks persisted after saving and reloading at Bone Bottom.
+
+In the same live room, four controlled location checks delivered four Fleas. A separate fifth check at The Marrow Rosary Cache #12 delivered the fifth Flea. Archipelago recorded Hornet's goal completion immediately afterward, before releasing the remaining items. The check driver submitted location checks only. This verifies live goal reporting. A full playthrough of the shuffled route remains untested.
 
 ## The Mist and Red Memory
 
