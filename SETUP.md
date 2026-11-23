@@ -9,10 +9,13 @@ Use the plugin ZIP and `silksong.apworld` from the same Silksong Decrypted build
 3. If you already use a Silksong randomizer, move its plugin folder out of `BepInEx/plugins` before launching. Use one randomizer plugin per profile.
 4. Launch Silksong. The Archipelago connection panel should appear. Press **F3** to reopen it.
 
-## Host a room
+## Generate the seed and host a room
 
-1. Open Archipelago Launcher, drop `silksong.apworld` onto it, and restart the Launcher. Keep one Silksong APWorld installed.
-2. Export a player YAML from the [Silksong Decrypted YAML Generator](https://decryptu.github.io/silksong-decrypted/yaml.html), or open **Options Creator** in Archipelago Launcher, select **Hollow Knight: Silksong**, and export a YAML. For a default solo room, the following YAML is sufficient.
+Only the host generates the seed. Players who join someone else's room only send their YAML to the host and skip to [Join and resume](#join-and-resume). If you play solo, you are the host: follow these steps with just your own YAML.
+
+1. Install [Archipelago](https://github.com/ArchipelagoMW/Archipelago/releases/latest) 0.6.8 or newer (older versions cannot load this world) and open **Archipelago Launcher**.
+2. Drag `silksong.apworld` onto the Launcher window, then close and reopen the Launcher. Keep one Silksong APWorld installed.
+3. Make a player YAML with the [Silksong Decrypted YAML Generator](https://decryptu.github.io/silksong-decrypted/yaml.html), or with **Options Creator** in the Launcher (select **Hollow Knight: Silksong**). For a default solo game, this YAML is enough:
 
    ```yaml
    name: Hornet
@@ -20,8 +23,12 @@ Use the plugin ZIP and `silksong.apworld` from the same Silksong Decrypted build
    'Hollow Knight: Silksong': {}
    ```
 
-3. Put one YAML per player in the Archipelago `Players` folder, with a distinct `name` for each slot. Run **Generate** from the Launcher.
-4. For a local test on the same computer, open the generated ZIP with **Archipelago Server** and connect to `127.0.0.1` using the port printed by the server. For a shared room, host the generated ZIP and give players the host, port, their exact YAML `name`, and the password if the room uses one.
+4. In the Launcher, click **Browse Files** to open the Archipelago folder (usually `C:\ProgramData\Archipelago`) and open its `Players` folder. Put your YAML and every other player's YAML there. Each YAML needs a different `name`. Every `.yaml` in `Players` becomes a slot, so move out old YAMLs you do not want in this game.
+5. Back in the Launcher, click **Generate**. A console window runs and closes when it is done. The seed is a file named like `AP_12345678901234567890.zip` in the `output` folder next to `Players`. Do not unzip it. If generation fails, run `ArchipelagoGenerate.exe` from the Archipelago folder to keep the error visible, and check that `silksong.apworld` is installed and that each YAML is valid.
+6. Open a room with that ZIP:
+   - **Online (friends, or solo on archipelago.gg):** upload the ZIP at [archipelago.gg/uploads](https://archipelago.gg/uploads) and click **Create New Room**. The room page shows an address such as `archipelago.gg:38281`. Give each player the host (`archipelago.gg`), the port (`38281`), and their exact YAML `name`.
+   - **Same computer only:** click **Host** in the Launcher and select the ZIP. Connect to `127.0.0.1` with the port printed in the server window (default `38281`). Keep that window open while you play.
+   - **Self-hosted for others:** host the ZIP with **Archipelago Server**, forward its port, and give players your public address, port, slot names, and password if you set one.
 
 ## Join and resume
 
@@ -55,6 +62,7 @@ To share your playtest session or report a bug:
 
 ## Troubleshoot
 
+- **Generate says `File Hornet.yaml is invalid. Please fix your yaml.`** The YAML is usually fine; Archipelago cannot find the Silksong world. Scroll up in the console: `No world found to handle game Hollow Knight: Silksong` confirms it. Update Archipelago to 0.6.8 or newer (older versions refuse this APWorld), drag `silksong.apworld` onto the Launcher again, then fully close and reopen the Launcher before generating. Keep only one Silksong APWorld in `custom_worlds`.
 - **F3 has no effect.** Check `BepInEx/LogOutput.log` for a Silksong Decrypted load entry. Confirm the ZIP's `BepInEx` folder was merged at the game root and check the log for missing dependencies or duplicate plugins.
 - **The room rejects the connection.** Confirm the host, port, slot name and password. If it reports a compatibility mismatch, ask the host which APWorld generated the room and install the matching plugin.
 - **An existing randomizer save is missing.** Check the save folder notice in F3. The game can use a different save folder when its account service is unavailable. Restore the usual account context before choosing a new slot.

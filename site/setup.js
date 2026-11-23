@@ -7,10 +7,10 @@ const STEPS = {
     ["mn-plugin", "Add the Silksong Decrypted plugin", `Extract <a href="${DOWNLOAD}/SilksongDecrypted-0.5.5-rc.2.zip">SilksongDecrypted-0.5.5-rc.2.zip</a> into the game folder and confirm <code>BepInEx/plugins/SilksongDecrypted/SilksongRandomizer.dll</code> exists. Remove any other Silksong randomizer plugin first, including one installed by Cogfly or r2modman (their profile codes install the upstream mod, not Silksong Decrypted).`]
   ],
   host: [
-    ["ap-launcher", "Install Archipelago", `Get the <a href="https://github.com/ArchipelagoMW/Archipelago/releases/latest">Archipelago launcher</a> (0.6.8 or newer).`],
-    ["h-players", "Collect every YAML", "Put all players' <code>.yaml</code> files in Archipelago's <code>Players</code> folder (each with a unique slot name)."],
-    ["h-gen", "Generate the seed", "Press Generate in Archipelago Launcher. The room <code>.zip</code> lands in the <code>output</code> folder."],
-    ["h-room", "Open a room", `Upload the <code>.zip</code> at <a href="https://archipelago.gg/uploads">archipelago.gg/uploads</a> (or open it in Archipelago Server for local play) and share the host, port, and slot names.`]
+    ["ap-launcher", "Install Archipelago", `Get the <a href="https://github.com/ArchipelagoMW/Archipelago/releases/latest">Archipelago launcher</a> (0.6.8 or newer; older versions cannot load the Silksong world).`],
+    ["h-players", "Put every YAML in the Players folder", `In Archipelago Launcher, click <b>Browse Files</b> to open the Archipelago folder (usually <code>C:\\ProgramData\\Archipelago</code>), then open <code>Players</code>. Put your own <code>.yaml</code> and every other player's <code>.yaml</code> there. Each file needs a different <code>name</code>. Move out any old YAMLs you don't want in this game: <b>every</b> <code>.yaml</code> in <code>Players</code> becomes a slot. Playing solo? Just your one YAML.`],
+    ["h-gen", "Generate the seed", `Back in Archipelago Launcher, click <b>Generate</b>. A console window opens; wait for it to finish without errors and close. The seed is a file named like <code>AP_12345678901234567890.zip</code> in the <code>output</code> folder next to <code>Players</code>. Don't unzip it. <br><b>Got <code>File Hornet.yaml is invalid. Please fix your yaml</code>?</b> Your YAML is usually fine: Archipelago can't find the Silksong world. Update Archipelago to <b>0.6.8 or newer</b> (older versions refuse this world), drag <code>silksong.apworld</code> onto the Launcher again, and fully close and reopen the Launcher before pressing Generate.`],
+    ["h-room", "Open a room", `<b>Online:</b> upload the <code>AP_….zip</code> at <a href="https://archipelago.gg/uploads">archipelago.gg/uploads</a>, click <b>Create New Room</b>, and share the room's address (for example <code>archipelago.gg:38281</code>: host <code>archipelago.gg</code>, port <code>38281</code>) with each player's slot name. <b>Same PC only:</b> click <b>Host</b> in Archipelago Launcher, pick the <code>.zip</code>, and connect to <code>127.0.0.1</code> with the port shown in the server window (default <code>38281</code>); keep that window open while playing.`]
   ],
   join: [
     ["j-connect", "Connect in game", "Launch Silksong, open the <b>F3</b> panel, and enter the room host, port, assigned slot name, and password if required. Connect and start a new randomizer save in an empty slot."],
@@ -34,7 +34,7 @@ function buildSteps() {
     "Make your options file",
     state.role === "host"
       ? `Use the <a href="./yaml.html">Silksong Decrypted YAML Generator</a> to pick a preset or customize options and download your <code>.yaml</code>.`
-      : `Use the <a href="./yaml.html">Silksong Decrypted YAML Generator</a> to customize your options and download your <code>.yaml</code>, then send it to your host. (No Archipelago Launcher install is needed just to play.)`
+      : `Use the <a href="./yaml.html">Silksong Decrypted YAML Generator</a> to customize your options and download your <code>.yaml</code>, then send that <code>.yaml</code> file to your host. The host generates the seed and sends you back a room address. (No Archipelago Launcher install is needed just to play. Playing solo? Pick <b>Hosting a game</b> instead: you generate your own seed.)`
   ];
   const worldStep = [
     "ap-world",
