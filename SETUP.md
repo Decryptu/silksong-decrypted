@@ -12,7 +12,7 @@ Use the plugin ZIP and `silksong.apworld` from the same Silksong Decrypted build
 ## Host a room
 
 1. Open Archipelago Launcher, drop `silksong.apworld` onto it, and restart the Launcher. Keep one Silksong APWorld installed.
-2. In **Options Creator**, select **Hollow Knight: Silksong** and export a YAML. For a default solo room, the following YAML is sufficient.
+2. Export a player YAML from the [Silksong Decrypted YAML Generator](https://decryptu.github.io/silksong-decrypted/yaml.html), or open **Options Creator** in Archipelago Launcher, select **Hollow Knight: Silksong**, and export a YAML. For a default solo room, the following YAML is sufficient.
 
    ```yaml
    name: Hornet

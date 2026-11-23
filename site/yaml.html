@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="First-party YAML generator for Silksong Decrypted, built directly from the shipped Archipelago world options and defaults.">
+  <title>YAML Generator — Silksong Decrypted</title>
+  <link rel="icon" href="./assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./yaml-core.js" defer></script>
+  <script src="./yaml-ui.js" defer></script>
+</head>
+<body class="yaml-page">
+  <header class="bar">
+    <a class="brand" href="./">Silksong Decrypted</a>
+    <nav aria-label="Project">
+      <a href="./#setup">Setup</a>
+      <a href="./yaml.html" aria-current="page">YAML Generator</a>
+      <a href="./#status">Status</a>
+      <a href="https://github.com/Decryptu/silksong-decrypted">GitHub</a>
+    </nav>
+  </header>
+
+  <main class="yaml-main">
+    <section class="yaml-hero">
+      <p class="eyebrow">First-party Archipelago options <span id="world-version"></span></p>
+      <h1>YAML Generator</h1>
+      <p class="lede">Choose a preset or customize every shipped Silksong option. Incompatible combinations are flagged before you export.</p>
+    </section>
+
+    <section class="yaml-presets-section" aria-labelledby="presets-h">
+      <div class="section-head">
+        <h2 id="presets-h">Presets</h2>
+        <div class="preset-actions">
+          <label class="btn ghost file-btn">
+            Import .yaml
+            <input type="file" id="import-file" accept=".yaml,.yml,text/yaml,text/plain" hidden>
+          </label>
+          <button type="button" class="btn ghost" id="reset-defaults">Reset defaults</button>
+        </div>
+      </div>
+      <div class="preset-grid" id="preset-grid" role="list"></div>
+    </section>
+
+    <div class="yaml-layout">
+      <section class="yaml-editor" aria-label="Option configuration">
+        <div class="card identity-card">
+          <div class="identity-grid">
+            <label class="field">
+              <span class="field-label">Player / Slot Name <small>(max 16 chars)</small></span>
+              <input type="text" id="player-name" maxlength="32" value="Hornet" autocomplete="off" placeholder="Hornet">
+            </label>
+            <label class="field">
+              <span class="field-label">Description <small>(optional)</small></span>
+              <input type="text" id="player-description" maxlength="120" value="" autocomplete="off" placeholder="e.g. Casual Act 3 run">
+            </label>
+          </div>
+          <p class="import-status" id="import-status" role="status" aria-live="polite" hidden></p>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-wrap">
+            <span class="sr-only">Filter options</span>
+            <input type="search" id="option-search" placeholder="Filter options by name, key, or description...">
+          </label>
+          <div class="toolbar-toggles">
+            <label class="inline-check"><input type="checkbox" id="filter-changed"><span>Changed only</span></label>
+            <label class="inline-check"><input type="checkbox" id="show-experimental"><span>Show Beta</span></label>
+            <button type="button" class="btn subtle" id="expand-all">Expand all</button>
+            <button type="button" class="btn subtle" id="collapse-all">Collapse all</button>
+          </div>
+        </div>
+
+        <div id="groups-container" class="groups-container">
+          <p class="hint">Loading option schema...</p>
+        </div>
+      </section>
+
+      <aside class="yaml-sidebar" aria-label="Validation and YAML export">
+        <section class="card validation-card" aria-labelledby="validation-h">
+          <div class="card-head">
+            <h2 id="validation-h">Validation</h2>
+            <span class="status-pill ok" id="validation-pill">Ready</span>
+          </div>
+          <div id="filler-summary" class="filler-summary" hidden></div>
+          <div id="validation-list" class="validation-list" aria-live="polite"></div>
+        </section>
+
+        <section class="card preview-card" aria-labelledby="preview-h">
+          <div class="card-head">
+            <div>
+              <h2 id="preview-h">Export YAML</h2>
+              <p class="meta-line"><code id="export-filename">Hornet.yaml</code> · <span id="override-count">0 overrides</span></p>
+            </div>
+          </div>
+
+          <div class="export-toggles">
+            <label class="inline-check"><input type="checkbox" id="include-defaults"><span>Include all defaults</span></label>
+            <label class="inline-check"><input type="checkbox" id="include-comments" checked><span>Header comments</span></label>
+          </div>
+
+          <div class="export-actions">
+            <button type="button" class="btn primary" id="download-yaml">Download .yaml</button>
+            <button type="button" class="btn" id="copy-yaml">Copy YAML</button>
+          </div>
+          <p class="copy-status" id="copy-status" role="status" aria-live="polite" hidden></p>
+
+          <pre class="yaml-code" id="yaml-preview" tabindex="0" aria-label="Generated YAML preview"></pre>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="bar foot"><span>Unofficial fan project. Not affiliated with Team Cherry.</span></footer>
+</body>
+</html>

@@ -1,0 +1,2530 @@
+{
+  "game": "Hollow Knight: Silksong",
+  "worldVersion": "0.5.5",
+  "groups": [
+    {
+      "id": "general-goal-options",
+      "name": "General/Goal Options",
+      "startCollapsed": false,
+      "experimental": false,
+      "options": [
+        "progression_balancing",
+        "accessibility",
+        "game_mode",
+        "goal",
+        "spelling_bee_phrase",
+        "bellway_access",
+        "flea_hunt_count",
+        "silk_and_soul_points",
+        "trails_end_requirement"
+      ]
+    },
+    {
+      "id": "starting-options",
+      "name": "Starting Options",
+      "startCollapsed": false,
+      "experimental": false,
+      "options": [
+        "starting_location",
+        "starting_crest",
+        "force_naked",
+        "start_with_maps",
+        "start_fully_mapped",
+        "automatic_compass"
+      ]
+    },
+    {
+      "id": "proficiency-skip-options",
+      "name": "Proficiency/Skip Options",
+      "startCollapsed": true,
+      "experimental": false,
+      "options": [
+        "platforming_capability",
+        "proficient_combat",
+        "damage_boost_logic",
+        "flea_brew_jump_logic",
+        "red_tool_stall_logic",
+        "drill_crystal_pogo_logic",
+        "enemy_pogo_logic",
+        "crest_pogo_logic",
+        "needle_strike_logic",
+        "sharpdart_logic",
+        "scuttlebrace_logic",
+        "heal_stall_logic",
+        "hazard_respawn_logic"
+      ]
+    },
+    {
+      "id": "randomization-options",
+      "name": "Randomization Options",
+      "startCollapsed": true,
+      "experimental": false,
+      "options": [
+        "randomized_bell_markers",
+        "randomized_melody_markers",
+        "quill_randomization",
+        "compass_randomization",
+        "skill_randomization",
+        "tool_randomization",
+        "silk_skill_randomization",
+        "silk_soar_begone",
+        "crest_randomization",
+        "eva_randomization",
+        "soul_randomization",
+        "old_heart_randomization",
+        "everbloom_randomization",
+        "memento_randomization",
+        "materium_randomization",
+        "farsight_randomization",
+        "bellhome_randomization",
+        "cogheart_piece_randomization",
+        "quest_collectible_randomization",
+        "twisted_bud_randomization",
+        "flea_randomization",
+        "crest_slot_randomization",
+        "mask_shard_randomization",
+        "spool_fragment_randomization",
+        "silk_heart_randomization",
+        "silk_heart_logic",
+        "bellway_randomization",
+        "ventrica_randomization",
+        "map_randomization",
+        "needle_upgrade_randomization",
+        "pale_oil_randomization",
+        "melody_randomization",
+        "pin_randomization",
+        "relic_randomization",
+        "crafting_kit_randomization",
+        "major_key_randomization",
+        "diving_bell_key_randomization",
+        "memory_locket_randomization",
+        "craftmetal_randomization",
+        "mossberry_randomization",
+        "pollip_heart_randomization",
+        "silkeater_randomization",
+        "tool_pouch_randomization",
+        "lore_tablet_randomization",
+        "frayed_rosary_string_randomization",
+        "rosary_string_randomization",
+        "rosary_necklace_randomization",
+        "heavy_rosary_necklace_randomization",
+        "pale_rosary_necklace_randomization",
+        "rosary_cache_randomization",
+        "shard_bundle_randomization",
+        "beast_shard_randomization",
+        "pristine_core_randomization",
+        "shell_shard_cache_randomization",
+        "journal_randomization",
+        "boss_sanity",
+        "bell_shrine_sanity",
+        "wish_sanity",
+        "shuffle_wish_offers",
+        "wish_plando",
+        "individual_relic_turn_ins",
+        "alphabet_mode"
+      ]
+    },
+    {
+      "id": "split-directional-abilities",
+      "name": "Split/Directional Abilities",
+      "startCollapsed": true,
+      "experimental": false,
+      "options": [
+        "ledgegrab_ability_rando",
+        "directional_ledge_grab",
+        "swim_ability_rando",
+        "bind_randomization",
+        "directional_cling_grip",
+        "directional_swift_step",
+        "directional_clawline",
+        "split_dash_and_sprint"
+      ]
+    },
+    {
+      "id": "costsanity",
+      "name": "Costsanity",
+      "startCollapsed": true,
+      "experimental": false,
+      "options": [
+        "normal_shop_prices",
+        "bellway_prices",
+        "ventrica_prices",
+        "bench_prices",
+        "miscellaneous_prices",
+        "map_prices",
+        "pin_prices",
+        "upgrade_prices",
+        "donation_prices",
+        "vog_hint_prices"
+      ]
+    },
+    {
+      "id": "beta-features",
+      "name": "BETA Features",
+      "startCollapsed": true,
+      "experimental": true,
+      "options": [
+        "entrance_randomization",
+        "entrance_randomization_scope",
+        "boss_souls",
+        "enemy_souls",
+        "npc_souls"
+      ]
+    },
+    {
+      "id": "link-options",
+      "name": "Link Options",
+      "startCollapsed": true,
+      "experimental": false,
+      "options": [
+        "silk_link",
+        "rosary_link",
+        "shell_shard_link",
+        "knockback_link"
+      ]
+    },
+    {
+      "id": "miscellaneous",
+      "name": "Miscellaneous",
+      "startCollapsed": true,
+      "experimental": false,
+      "options": [
+        "early_sprint",
+        "vog_area_hints",
+        "enemy_rosary_multiplier",
+        "enemy_shard_multiplier",
+        "faster_dialogue",
+        "faster_silkheart_animation",
+        "trap_disguises",
+        "trap_percentage",
+        "stagger_trap_weight",
+        "rosary_spill_trap_weight",
+        "darkness_trap_weight",
+        "cursed_crest_trap_weight",
+        "muckmaggot_status_trap_weight",
+        "naked_trap_weight",
+        "literacy_trap_weight",
+        "shader_trap_weight"
+      ]
+    }
+  ],
+  "options": {
+    "progression_balancing": {
+      "key": "progression_balancing",
+      "displayName": "Progression Balancing",
+      "description": "A system that can move progression earlier, to try and prevent the player from getting stuck and bored early.\n\nA lower setting means more getting stuck. A higher setting means less getting stuck.",
+      "experimental": false,
+      "kind": "range",
+      "default": 50,
+      "min": 0,
+      "max": 99,
+      "specialValues": {
+        "disabled": 0,
+        "normal": 50,
+        "extreme": 99
+      }
+    },
+    "accessibility": {
+      "key": "accessibility",
+      "displayName": "Accessibility",
+      "description": "Set rules for reachability of your items/locations.\n\n**Full:** ensure everything can be reached and acquired.\n\n**Minimal:** ensure what is needed to reach your goal can be acquired.\n\n**Items:** ensure all logically relevant items can be acquired. Some items, such as keys, may be self-locking, and some locations may be inaccessible.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "items",
+      "choices": [
+        {
+          "value": "full",
+          "label": "Full"
+        },
+        {
+          "value": "minimal",
+          "label": "Minimal"
+        },
+        {
+          "value": "items",
+          "label": "Items"
+        }
+      ],
+      "aliases": {
+        "none": "minimal",
+        "locations": "full"
+      }
+    },
+    "game_mode": {
+      "key": "game_mode",
+      "displayName": "Game Mode",
+      "description": "Choose Classic or Steel Soul. Steel Soul changes some checks and ends the save on death.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "classic",
+      "choices": [
+        {
+          "value": "classic",
+          "label": "Classic"
+        },
+        {
+          "value": "steel_soul",
+          "label": "Steel Soul"
+        }
+      ]
+    },
+    "goal": {
+      "key": "goal",
+      "displayName": "Goal",
+      "description": "Act 1-3 require beating the chosen act, Cursed Ending is self explanatory, Flea Hunt is getting the set amount of fleas and Spelling Bee is getting every unique letter in the chosen phrase with Alphabet Rando on.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "act_3",
+      "choices": [
+        {
+          "value": "act_1",
+          "label": "Act 1"
+        },
+        {
+          "value": "act_2",
+          "label": "Act 2"
+        },
+        {
+          "value": "act_3",
+          "label": "Act 3"
+        },
+        {
+          "value": "flea_hunt",
+          "label": "Flea Hunt"
+        },
+        {
+          "value": "cursed_ending",
+          "label": "Cursed Ending"
+        },
+        {
+          "value": "spelling_bee",
+          "label": "Spelling Bee"
+        }
+      ]
+    },
+    "spelling_bee_phrase": {
+      "key": "spelling_bee_phrase",
+      "displayName": "Spelling Bee Phrase",
+      "description": "The word or phrase used by the Spelling Bee goal.\n\nA-Z letters, spaces, commas, periods, question marks and exclamation marks are supported. At least one letter is required. Other characters change the goal to Act 2 and do not automatically enable Alphabet Mode.",
+      "experimental": false,
+      "kind": "text",
+      "default": "Hornet"
+    },
+    "flea_hunt_count": {
+      "key": "flea_hunt_count",
+      "displayName": "Flea Hunt Count",
+      "description": "Number of distinct AP Fleas received for Flea Hunt victory.",
+      "experimental": false,
+      "kind": "range",
+      "default": 30,
+      "min": 1,
+      "max": 30
+    },
+    "starting_location": {
+      "key": "starting_location",
+      "displayName": "Starting Location",
+      "description": "Choose your starting location and F4 destination. Alternate starts have a checkpoint immediately. Bone Bottom's F4 warp unlocks after visiting.\n\nSongclave requires an Act 2 or later goal. Randomized Ledge Grab replaces Vanilla with Bone Bottom.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label": "Vanilla"
+        },
+        {
+          "value": "bone_bottom",
+          "label": "Bone Bottom"
+        },
+        {
+          "value": "bellhart",
+          "label": "Bellhart"
+        },
+        {
+          "value": "songclave",
+          "label": "Songclave"
+        },
+        {
+          "value": "wormways",
+          "label": "Wormways"
+        },
+        {
+          "value": "pilgrims_rest",
+          "label": "Pilgrim's Rest"
+        },
+        {
+          "value": "deep_docks",
+          "label": "Deep Docks"
+        },
+        {
+          "value": "shellwood",
+          "label": "Shellwood"
+        },
+        {
+          "value": "blasted_steps",
+          "label": "Blasted Steps"
+        }
+      ]
+    },
+    "entrance_randomization": {
+      "key": "entrance_randomization",
+      "displayName": "Entrance Randomization (Beta)",
+      "description": "EXPERIMENTAL FEATURE. Couple room exits with matching directions.",
+      "experimental": true,
+      "kind": "choice",
+      "default": "off",
+      "choices": [
+        {
+          "value": "off",
+          "label": "Off"
+        },
+        {
+          "value": "coupled",
+          "label": "Coupled"
+        }
+      ]
+    },
+    "entrance_randomization_scope": {
+      "key": "entrance_randomization_scope",
+      "displayName": "Entrance Randomization Scope (Beta)",
+      "description": "Choose the coupled entrance pool. Full shuffles all supported connections. Interiors shuffles door/interior pairs. Within Areas shuffles connections inside each area and leaves area boundaries unchanged.",
+      "experimental": true,
+      "kind": "choice",
+      "default": "full",
+      "choices": [
+        {
+          "value": "full",
+          "label": "Full"
+        },
+        {
+          "value": "interiors",
+          "label": "Interiors"
+        },
+        {
+          "value": "within_areas",
+          "label": "Within Areas"
+        }
+      ]
+    },
+    "starting_crest": {
+      "key": "starting_crest",
+      "displayName": "Starting Crest",
+      "description": "Choose Hornet's starting Crest when Crests are randomized.\n\nrandom selects one of the seven Crests.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "random",
+      "choices": [
+        {
+          "value": "random",
+          "label": "Random"
+        },
+        {
+          "value": "hunter",
+          "label": "Hunter"
+        },
+        {
+          "value": "wanderer",
+          "label": "Wanderer"
+        },
+        {
+          "value": "reaper",
+          "label": "Reaper"
+        },
+        {
+          "value": "beast",
+          "label": "Beast"
+        },
+        {
+          "value": "architect",
+          "label": "Architect"
+        },
+        {
+          "value": "witch",
+          "label": "Witch"
+        },
+        {
+          "value": "shaman",
+          "label": "Shaman"
+        }
+      ]
+    },
+    "force_naked": {
+      "key": "force_naked",
+      "displayName": "Force Naked",
+      "description": "Start cloakless without a Crest until you find one. Overrides Starting Crest. Experimental. Requires Crest Randomization set to anywhere.",
+      "experimental": true,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "early_sprint": {
+      "key": "early_sprint",
+      "displayName": "Early Sprint",
+      "description": "Place sprint early when Skills are randomized. With Split Dash And Sprint enabled, only the first Progressive Swift Step is placed early. Otherwise, the early Swift Step also grants dash.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": true,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "silk_and_soul_points": {
+      "key": "silk_and_soul_points",
+      "displayName": "Silk and Soul Points",
+      "description": "Wish points required for Silk and Soul for the Act 3 goal. Other goals keep the vanilla 17-point requirement. Mandatory wishes and story requirements remain unchanged. Nuu's wish does not count in logic. Values above 23 are treated as 23, or 22 in Steel Soul.",
+      "experimental": false,
+      "kind": "range",
+      "default": 17,
+      "min": 0,
+      "max": 23
+    },
+    "ledgegrab_ability_rando": {
+      "key": "ledgegrab_ability_rando",
+      "displayName": "Ledge Grab Rando",
+      "description": "Randomizes Hornet's ability to grab ledges.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "directional_ledge_grab": {
+      "key": "directional_ledge_grab",
+      "displayName": "Directional Ledge Grab Rando",
+      "description": "Split Ledge Grab into Left and Right items. Automatically enables Ledge Grab Rando.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "swim_ability_rando": {
+      "key": "swim_ability_rando",
+      "displayName": "Swim Rando",
+      "description": "Randomizes Hornet's ability to swim.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "bind_randomization": {
+      "key": "bind_randomization",
+      "displayName": "Bind Randomization",
+      "description": "Randomizes Bind for healing, heal stalls and interactions that require it. Shared adds one Bind item for every crest. Per Crest adds a Bind item for each crest.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label": "Vanilla"
+        },
+        {
+          "value": "shared",
+          "label": "Shared"
+        },
+        {
+          "value": "per_crest",
+          "label": "Per Crest"
+        }
+      ]
+    },
+    "directional_cling_grip": {
+      "key": "directional_cling_grip",
+      "displayName": "Directional Cling Grip",
+      "description": "Split Cling Grip into Left and Right wall-clinging items with Skills set to anywhere.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "directional_swift_step": {
+      "key": "directional_swift_step",
+      "displayName": "Directional Swift Step",
+      "description": "Split Swift Step into Left and Right items with Skills set to anywhere. Each item grants dash and sprint only in its direction. With Split Dash And Sprint enabled, three Progressive Swift Steps grant sprint in both directions first, then one dash direction chosen by the seed, then the other direction.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "directional_clawline": {
+      "key": "directional_clawline",
+      "displayName": "Directional Clawline",
+      "description": "Split Clawline into Left and Right items with Skills set to anywhere.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "split_dash_and_sprint": {
+      "key": "split_dash_and_sprint",
+      "displayName": "Split Dash And Sprint",
+      "description": "With Skills set to anywhere, the first Progressive Swift Step grants sprint and the second grants dash. With Directional Swift Step enabled, three Progressive Swift Steps grant sprint, one dash direction chosen by the seed then the other dash direction.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "trails_end_requirement": {
+      "key": "trails_end_requirement",
+      "displayName": "Trail's End Requirement",
+      "description": "Choose whether Trail's End uses 14 Shakra map-stock purchases or received maps.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "shakra_stock",
+      "choices": [
+        {
+          "value": "shakra_stock",
+          "label": "Shakra Map Stock (14 purchases)"
+        },
+        {
+          "value": "owned_maps",
+          "label": "Owned Maps"
+        }
+      ]
+    },
+    "enemy_pogo_logic": {
+      "key": "enemy_pogo_logic",
+      "displayName": "Enemy Pogo Skip Logic",
+      "description": "Use enemy pogo tricks to gain height or cross gaps beyond ordinary traversal.\n\nNormal enemy pogos remain available with this option set to None.\n\nHigher settings also allow easier tricks.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "none",
+      "choices": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "easy",
+          "label": "Easy"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate"
+        },
+        {
+          "value": "difficult",
+          "label": "Difficult"
+        }
+      ]
+    },
+    "proficient_combat": {
+      "key": "proficient_combat",
+      "displayName": "Proficient Combat",
+      "description": "Choose the preferred combat requirements settings.\n\nOff: use the normal combat requirements. Goated: lower Needle, DPS and Crafting Kit requirements by one tier and Mask Shard requirements by four fragments. Hell: bypass combat requirements including combat movement.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "off",
+      "choices": [
+        {
+          "value": "off",
+          "label": "Off"
+        },
+        {
+          "value": "goated",
+          "label": "Goated"
+        },
+        {
+          "value": "hell",
+          "label": "Hell"
+        }
+      ]
+    },
+    "damage_boost_logic": {
+      "key": "damage_boost_logic",
+      "displayName": "Damage Boost Logic",
+      "description": "Take a hit to cross an obstacle using knockback or invulnerability. None disables these routes. Higher settings also allow easier boosts.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "none",
+      "choices": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "easy",
+          "label": "Easy"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate"
+        },
+        {
+          "value": "difficult",
+          "label": "Difficult"
+        }
+      ]
+    },
+    "platforming_capability": {
+      "key": "platforming_capability",
+      "displayName": "Platforming Capability",
+      "description": "Normal uses ordinary platforming routes. Proficient Movement allows precise inputs and advanced uses of movement abilities. Elite Ball Knowledge also includes routes marked for that setting.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "normal",
+      "choices": [
+        {
+          "value": "normal",
+          "label": "Normal"
+        },
+        {
+          "value": "proficient_movement",
+          "label": "Proficient Movement"
+        },
+        {
+          "value": "elite_ball_knowledge",
+          "label": "Elite Ball Knowledge"
+        }
+      ]
+    },
+    "flea_brew_jump_logic": {
+      "key": "flea_brew_jump_logic",
+      "displayName": "Flea Brew Jump Logic",
+      "description": "Use Flea Brew's movement speed boost to make longer jumps.\n\nIts speed boost for the Weavenest Cindril secret room remains in logic with this option disabled.\n\nRequires Flea Brew and a crest with a usable red tool slot.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "red_tool_stall_logic": {
+      "key": "red_tool_stall_logic",
+      "displayName": "Red Tool Stall Logic",
+      "description": "Use Flea Brew, Flintslate, Plasmium Phial or Voltvessels in midair to briefly delay your fall and extend a jump.\n\nNone disables these techniques. Higher settings also allow easier uses.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "none",
+      "choices": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "easy",
+          "label": "Easy"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate"
+        },
+        {
+          "value": "difficult",
+          "label": "Difficult"
+        }
+      ]
+    },
+    "drill_crystal_pogo_logic": {
+      "key": "drill_crystal_pogo_logic",
+      "displayName": "Drill Crystal Pogo Logic",
+      "description": "Take damage to create a Memory Crystal, then use Delver's Drill to gain height from it. Both tools must fit on the same owned crest.\n\nNone disables this technique. Higher settings also allow easier uses.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "none",
+      "choices": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "easy",
+          "label": "Easy"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate"
+        },
+        {
+          "value": "difficult",
+          "label": "Difficult"
+        }
+      ]
+    },
+    "crest_pogo_logic": {
+      "key": "crest_pogo_logic",
+      "displayName": "Crest Pogo Skip Logic",
+      "description": "Use crest-specific pogo techniques to gain height or extend jumps. Covers pogo skips for every crest.\n\nNone disables these techniques. Higher settings also allow easier uses.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "none",
+      "choices": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "easy",
+          "label": "Easy"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate"
+        },
+        {
+          "value": "difficult",
+          "label": "Difficult"
+        }
+      ]
+    },
+    "needle_strike_logic": {
+      "key": "needle_strike_logic",
+      "displayName": "Needle Strike Logic",
+      "description": "Use Needle Strike stalls and crest-specific charged attacks to delay your fall, extend jumps or gain height.\n\nNone disables these techniques.\n\nHigher settings also allow easier uses.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "none",
+      "choices": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "easy",
+          "label": "Easy"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate"
+        },
+        {
+          "value": "difficult",
+          "label": "Difficult"
+        }
+      ]
+    },
+    "sharpdart_logic": {
+      "key": "sharpdart_logic",
+      "displayName": "Sharpdart Logic",
+      "description": "Use Sharpdart to cross gaps and extend jumps.\n\nWhen disabled, traversal never requires Sharpdart.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "scuttlebrace_logic": {
+      "key": "scuttlebrace_logic",
+      "displayName": "Scuttlebrace Logic",
+      "description": "Use Scuttlebrace dodges to extend jumps and reach ledges.\n\nNone disables this technique. Higher settings also allow easier uses.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "none",
+      "choices": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "easy",
+          "label": "Easy"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate"
+        },
+        {
+          "value": "difficult",
+          "label": "Difficult"
+        }
+      ]
+    },
+    "heal_stall_logic": {
+      "key": "heal_stall_logic",
+      "displayName": "Heal Stall Logic",
+      "description": "Start binding in midair to briefly delay your fall and extend a jump.\n\nNone disables this technique. Higher settings also allow easier uses.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "none",
+      "choices": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "easy",
+          "label": "Easy"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate"
+        },
+        {
+          "value": "difficult",
+          "label": "Difficult"
+        }
+      ]
+    },
+    "hazard_respawn_logic": {
+      "key": "hazard_respawn_logic",
+      "displayName": "Hazard Respawn Logic",
+      "description": "Deliberately touch a hazard to return to a useful respawn point, allowing shortcuts across gaps or obstacles.\n\nNone disables this technique. Higher settings also allow easier uses.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "none",
+      "choices": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "easy",
+          "label": "Easy"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate"
+        },
+        {
+          "value": "difficult",
+          "label": "Difficult"
+        }
+      ]
+    },
+    "start_with_maps": {
+      "key": "start_with_maps",
+      "displayName": "Start With Maps",
+      "description": "Start with every eligible map.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": true,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "start_fully_mapped": {
+      "key": "start_fully_mapped",
+      "displayName": "Start Fully Mapped",
+      "description": "Start with the full world map drawn, regardless of map ownership. This does not grant map items. Use Start With Maps to receive them.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": true,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "automatic_compass": {
+      "key": "automatic_compass",
+      "displayName": "Automatic Compass",
+      "description": "Always show Hornet on maps without granting or equipping Compass.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": true,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "randomized_bell_markers": {
+      "key": "randomized_bell_markers",
+      "displayName": "Randomized Bell Markers",
+      "description": "Show map markers for your Grand Gate Bells where the randomizer placed them in your world.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": true,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "randomized_melody_markers": {
+      "key": "randomized_melody_markers",
+      "displayName": "Randomized Melody Markers",
+      "description": "Show map markers for your Threefold Melody pieces where the randomizer placed them in your world.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": true,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "vog_area_hints": {
+      "key": "vog_area_hints",
+      "displayName": "Vog Area Hints",
+      "description": "Number of area reports Vog can sell. Reports count remaining progression items for any player without revealing their names and update as you complete checks.",
+      "experimental": false,
+      "kind": "range",
+      "default": 0,
+      "min": 0,
+      "max": 30
+    },
+    "bellway_access": {
+      "key": "bellway_access",
+      "displayName": "Bellway Access",
+      "description": "Choose whether Bell Beast must be defeated before using Bellways.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "randomized_stations",
+      "choices": [
+        {
+          "value": "bell_beast_required",
+          "label": "Bell Beast Required"
+        },
+        {
+          "value": "randomized_stations",
+          "label": "Randomized Stations"
+        }
+      ]
+    },
+    "enemy_rosary_multiplier": {
+      "key": "enemy_rosary_multiplier",
+      "displayName": "Enemy Rosary Multiplier",
+      "description": "Multiply Rosaries dropped by defeated enemies only.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "x2",
+      "choices": [
+        {
+          "value": "x1",
+          "label": "1x"
+        },
+        {
+          "value": "x1_5",
+          "label": "1.5x"
+        },
+        {
+          "value": "x2",
+          "label": "2x"
+        },
+        {
+          "value": "x3",
+          "label": "3x"
+        },
+        {
+          "value": "x5",
+          "label": "5x"
+        },
+        {
+          "value": "x10",
+          "label": "10x"
+        }
+      ]
+    },
+    "enemy_shard_multiplier": {
+      "key": "enemy_shard_multiplier",
+      "displayName": "Enemy Shell Shard Multiplier",
+      "description": "Multiply Shell Shards dropped by defeated enemies only.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "x2",
+      "choices": [
+        {
+          "value": "x1",
+          "label": "1x"
+        },
+        {
+          "value": "x1_5",
+          "label": "1.5x"
+        },
+        {
+          "value": "x2",
+          "label": "2x"
+        },
+        {
+          "value": "x3",
+          "label": "3x"
+        },
+        {
+          "value": "x5",
+          "label": "5x"
+        },
+        {
+          "value": "x10",
+          "label": "10x"
+        }
+      ]
+    },
+    "normal_shop_prices": {
+      "key": "normal_shop_prices",
+      "displayName": "Normal Shop Prices",
+      "description": "Randomize prices for ShopItem purchases other than maps and pins.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label": "Vanilla"
+        },
+        {
+          "value": "free",
+          "label": "Free"
+        },
+        {
+          "value": "shuffle",
+          "label": "Shuffle"
+        },
+        {
+          "value": "cheap",
+          "label": "Cheap"
+        },
+        {
+          "value": "expensive",
+          "label": "Expensive"
+        }
+      ]
+    },
+    "bellway_prices": {
+      "key": "bellway_prices",
+      "displayName": "Bellway Prices",
+      "description": "Randomize prices charged by Bellway toll machines.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label": "Vanilla"
+        },
+        {
+          "value": "free",
+          "label": "Free"
+        },
+        {
+          "value": "shuffle",
+          "label": "Shuffle"
+        },
+        {
+          "value": "cheap",
+          "label": "Cheap"
+        },
+        {
+          "value": "expensive",
+          "label": "Expensive"
+        }
+      ]
+    },
+    "ventrica_prices": {
+      "key": "ventrica_prices",
+      "displayName": "Ventrica Prices",
+      "description": "Randomize prices charged by Ventrica toll machines.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label": "Vanilla"
+        },
+        {
+          "value": "free",
+          "label": "Free"
+        },
+        {
+          "value": "shuffle",
+          "label": "Shuffle"
+        },
+        {
+          "value": "cheap",
+          "label": "Cheap"
+        },
+        {
+          "value": "expensive",
+          "label": "Expensive"
+        }
+      ]
+    },
+    "bench_prices": {
+      "key": "bench_prices",
+      "displayName": "Bench Prices",
+      "description": "Randomize bench unlock tolls and Underworks bench fees.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label": "Vanilla"
+        },
+        {
+          "value": "free",
+          "label": "Free"
+        },
+        {
+          "value": "shuffle",
+          "label": "Shuffle"
+        },
+        {
+          "value": "cheap",
+          "label": "Cheap"
+        },
+        {
+          "value": "expensive",
+          "label": "Expensive"
+        }
+      ]
+    },
+    "miscellaneous_prices": {
+      "key": "miscellaneous_prices",
+      "displayName": "Miscellaneous Prices",
+      "description": "Randomize Pilgrim's Rest admission and pin gallery entry fees.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label": "Vanilla"
+        },
+        {
+          "value": "free",
+          "label": "Free"
+        },
+        {
+          "value": "shuffle",
+          "label": "Shuffle"
+        },
+        {
+          "value": "cheap",
+          "label": "Cheap"
+        },
+        {
+          "value": "expensive",
+          "label": "Expensive"
+        }
+      ]
+    },
+    "map_prices": {
+      "key": "map_prices",
+      "displayName": "Map Prices",
+      "description": "Randomize prices for Shakra's area maps and Citadel map machines.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label": "Vanilla"
+        },
+        {
+          "value": "free",
+          "label": "Free"
+        },
+        {
+          "value": "shuffle",
+          "label": "Shuffle"
+        },
+        {
+          "value": "cheap",
+          "label": "Cheap"
+        },
+        {
+          "value": "expensive",
+          "label": "Expensive"
+        }
+      ]
+    },
+    "pin_prices": {
+      "key": "pin_prices",
+      "displayName": "Pin Prices",
+      "description": "Randomize prices for Shakra's permanent map pins.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label": "Vanilla"
+        },
+        {
+          "value": "free",
+          "label": "Free"
+        },
+        {
+          "value": "shuffle",
+          "label": "Shuffle"
+        },
+        {
+          "value": "cheap",
+          "label": "Cheap"
+        },
+        {
+          "value": "expensive",
+          "label": "Expensive"
+        }
+      ]
+    },
+    "upgrade_prices": {
+      "key": "upgrade_prices",
+      "displayName": "Upgrade Prices",
+      "description": "Randomize the two paid Needle-upgrade service prices.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label": "Vanilla"
+        },
+        {
+          "value": "free",
+          "label": "Free"
+        },
+        {
+          "value": "shuffle",
+          "label": "Shuffle"
+        },
+        {
+          "value": "cheap",
+          "label": "Cheap"
+        },
+        {
+          "value": "expensive",
+          "label": "Expensive"
+        }
+      ]
+    },
+    "donation_prices": {
+      "key": "donation_prices",
+      "displayName": "Donation Prices",
+      "description": "Randomize Rosary and Shell Shard Wish donation requirements.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label": "Vanilla"
+        },
+        {
+          "value": "free",
+          "label": "Free"
+        },
+        {
+          "value": "shuffle",
+          "label": "Shuffle"
+        },
+        {
+          "value": "cheap",
+          "label": "Cheap"
+        },
+        {
+          "value": "expensive",
+          "label": "Expensive"
+        }
+      ]
+    },
+    "vog_hint_prices": {
+      "key": "vog_hint_prices",
+      "displayName": "Vog Hint Prices",
+      "description": "Randomize the price of Vog's area reports.",
+      "experimental": false,
+      "kind": "choice",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label": "Vanilla"
+        },
+        {
+          "value": "free",
+          "label": "Free"
+        },
+        {
+          "value": "shuffle",
+          "label": "Shuffle"
+        },
+        {
+          "value": "cheap",
+          "label": "Cheap"
+        },
+        {
+          "value": "expensive",
+          "label": "Expensive"
+        }
+      ]
+    },
+    "faster_dialogue": {
+      "key": "faster_dialogue",
+      "displayName": "Faster Dialogue",
+      "description": "Speed up ordinary NPC dialogue without skipping conversations.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": true,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "faster_silkheart_animation": {
+      "key": "faster_silkheart_animation",
+      "displayName": "Faster Silkheart Animation",
+      "description": "Collect boss Silkhearts on contact.\n\nFalse keeps the vanilla pickup animation but skips the dream sequence.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "quill_randomization": {
+      "key": "quill_randomization",
+      "displayName": "Quill Randomization",
+      "description": "Keep Quill at Shakra's shop or mix it into the global item pool.\n\nIndependent of Skill Randomization. Start Fully Mapped removes the need for Quill.",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "compass_randomization": {
+      "key": "compass_randomization",
+      "displayName": "Compass Randomization",
+      "description": "Keep Compass at Shakra's shop or mix it into the global item pool.\n\nIndependent of Tool Randomization. Automatic Compass supplies the position marker without the tool.",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "skill_randomization": {
+      "key": "skill_randomization",
+      "displayName": "Skill Randomization",
+      "description": "Randomizes the 8 traversal skills in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "tool_randomization": {
+      "key": "tool_randomization",
+      "displayName": "Tool Randomization",
+      "description": "Randomizes tools other than Compass in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "silk_skill_randomization": {
+      "key": "silk_skill_randomization",
+      "displayName": "Silk Skill Randomization",
+      "description": "Randomizes the 6 Silk Skills in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "silk_soar_begone": {
+      "key": "silk_soar_begone",
+      "displayName": "Silk Soar Begone",
+      "description": "Removes Silk Soar from runs without Act 3 areas. When Act 3 areas are included, Silk Soar stays at its vanilla shrine, even with skill randomization enabled.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "crest_randomization": {
+      "key": "crest_randomization",
+      "displayName": "Crest Randomization",
+      "description": "Randomizes the 7 Crests in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "eva_randomization": {
+      "key": "eva_randomization",
+      "displayName": "Eva Reward Randomization",
+      "description": "Randomizes Eva's two Hunter evolutions, two Vesticrests and Sylphsong.\n\nfalse: Eva gives her normal rewards true: mixes her rewards into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "soul_randomization": {
+      "key": "soul_randomization",
+      "displayName": "Act 2 Soul Randomization",
+      "description": "Randomizes Maiden Soul, Hermit Soul and Seeker Soul for Act 2, Cursed and Act 3 goals.",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "old_heart_randomization": {
+      "key": "old_heart_randomization",
+      "displayName": "Old Heart Randomization",
+      "description": "Randomizes Pollen Heart, Hunter's Heart, Encrusted Heart and Conjoined Heart for the Act 3 goal.",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "everbloom_randomization": {
+      "key": "everbloom_randomization",
+      "displayName": "Everbloom Randomization",
+      "description": "Randomizes Everbloom for Act 3 goals. The final Abyss route still requires the three-heart ritual and Red Memory to be completed.",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "memento_randomization": {
+      "key": "memento_randomization",
+      "displayName": "Memento Randomization",
+      "description": "Randomizes Mementos available for your goal. Hunter's Memento stays vanilla. Hearts follow Old Heart Randomization.",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "materium_randomization": {
+      "key": "materium_randomization",
+      "displayName": "Materium Randomization",
+      "description": "Randomizes Materium, Flintstone, Magnetite and Voltridian.",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "farsight_randomization": {
+      "key": "farsight_randomization",
+      "displayName": "Farsight Randomization",
+      "description": "Randomizes Farsight for Act 3 goals.",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "bellhome_randomization": {
+      "key": "bellhome_randomization",
+      "displayName": "Bellhome Item Randomization",
+      "description": "Randomizes Desk, Gleamlights, Bell Lacquer, Personal Spa, Gramophone and Crawbell. Crawbell is only included for Act 3 goals.",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "cogheart_piece_randomization": {
+      "key": "cogheart_piece_randomization",
+      "displayName": "Cogheart Pieces Randomization",
+      "description": "Randomizes the three Cogheart Pieces needed to activate Second Sentinel.",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "quest_collectible_randomization": {
+      "key": "quest_collectible_randomization",
+      "displayName": "Quest Collectible Randomization",
+      "description": "Randomizes Grass Doll, Horn Fragment, Crown Fragment and Broodmother's Eye.",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "twisted_bud_randomization": {
+      "key": "twisted_bud_randomization",
+      "displayName": "Twisted Bud Randomization",
+      "description": "Randomizes Twisted Bud.",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "flea_randomization": {
+      "key": "flea_randomization",
+      "displayName": "Flea Randomization",
+      "description": "Randomizes the 30 Fleas in the game, including Kratt, Vog and the Huge Flea.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "crest_slot_randomization": {
+      "key": "crest_slot_randomization",
+      "displayName": "Crest Slot Randomization",
+      "description": "Randomizes the 20 Crest Slots in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool\n\nIf needed, filler rewards become extra Memory Lockets so every randomized slot has enough Lockets available. Native pickups stay unchanged.",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "mask_shard_randomization": {
+      "key": "mask_shard_randomization",
+      "displayName": "Mask Shard Randomization",
+      "description": "Randomizes the 20 Mask Shards in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "spool_fragment_randomization": {
+      "key": "spool_fragment_randomization",
+      "displayName": "Spool Fragment Randomization",
+      "description": "Randomizes the 18 Spool Fragments in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "silk_heart_randomization": {
+      "key": "silk_heart_randomization",
+      "displayName": "Silk Heart Randomization",
+      "description": "Randomizes the 3 Silk Hearts in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "silk_heart_logic": {
+      "key": "silk_heart_logic",
+      "displayName": "Silk Heart Logic",
+      "description": "Places logical routes for abilities that require silk behind the acquisition of at least one Silk Heart. These include Needolin, Clawline and Silk Soar.\n\nTurning this option off may cause more frequent soft locks as you may get stuck in a location where you can't get more silk.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": true,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "bellway_randomization": {
+      "key": "bellway_randomization",
+      "displayName": "Bellway Randomization",
+      "description": "Randomizes the 10 Bellways in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "ventrica_randomization": {
+      "key": "ventrica_randomization",
+      "displayName": "Ventrica Randomization",
+      "description": "Randomizes the 6 Ventricas in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "map_randomization": {
+      "key": "map_randomization",
+      "displayName": "Map Randomization",
+      "description": "Randomizes the 28 Maps in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "needle_upgrade_randomization": {
+      "key": "needle_upgrade_randomization",
+      "displayName": "Needle Upgrade Randomization",
+      "description": "Randomizes Plinney's four Needle upgrades.\n\nfalse: leaves them at Plinney true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "pale_oil_randomization": {
+      "key": "pale_oil_randomization",
+      "displayName": "Pale Oil Randomization",
+      "description": "Randomizes the three Pale Oils in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "melody_randomization": {
+      "key": "melody_randomization",
+      "displayName": "Melody Randomization",
+      "description": "Randomizes the 5 Melodies in the game: the three required to finish Act 2, Beastling Call and Elegy of the Deep.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "pin_randomization": {
+      "key": "pin_randomization",
+      "displayName": "Pin Randomization",
+      "description": "Randomizes the 4 map-pin types in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "relic_randomization": {
+      "key": "relic_randomization",
+      "displayName": "Relic Randomization",
+      "description": "Randomizes the 21 Relics in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "crafting_kit_randomization": {
+      "key": "crafting_kit_randomization",
+      "displayName": "Crafting Kit Randomization",
+      "description": "Randomizes the 4 Crafting Kits in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "major_key_randomization": {
+      "key": "major_key_randomization",
+      "displayName": "Major Key Randomization",
+      "description": "Randomizes Key of Indolent, Key of Heretic, Key of Apostate, White Key, Surgeon's Key, Architect's Key and Craw Summons.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "diving_bell_key_randomization": {
+      "key": "diving_bell_key_randomization",
+      "displayName": "Diving Bell Key Randomization",
+      "description": "Adds a Diving Bell Key to the item pool. Repairing the Diving Bell requires this key as well as accepting the shaman's The Dark Below quest.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "memory_locket_randomization": {
+      "key": "memory_locket_randomization",
+      "displayName": "Memory Locket Randomization",
+      "description": "Randomizes the 20 Memory Lockets in the game.\n\nIf Crest Slots are randomized, using a Memory Locket will not unlock the slot for use, but whatever took its place in that slot remains its AP check.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "craftmetal_randomization": {
+      "key": "craftmetal_randomization",
+      "displayName": "Craftmetal Randomization",
+      "description": "Randomizes the 8 Craftmetals in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "mossberry_randomization": {
+      "key": "mossberry_randomization",
+      "displayName": "Mossberry Randomization",
+      "description": "Randomizes the 7 Mossberries in the game.\n\nThree are required for the Moss Druid's quest, while giving her the remaining four earns another check.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "pollip_heart_randomization": {
+      "key": "pollip_heart_randomization",
+      "displayName": "Pollip Heart Randomization",
+      "description": "Randomizes the 6 finite Pollip Hearts in the game.\n\nThey are required for Greyroot's quest in Shellwood.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "silkeater_randomization": {
+      "key": "silkeater_randomization",
+      "displayName": "Silkeater Randomization",
+      "description": "Randomizes the 9 Silkeaters in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "tool_pouch_randomization": {
+      "key": "tool_pouch_randomization",
+      "displayName": "Tool Pouch Randomization",
+      "description": "Randomizes the 4 Tool Pouch upgrades in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": true,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "lore_tablet_randomization": {
+      "key": "lore_tablet_randomization",
+      "displayName": "Lore Tablet Randomization",
+      "description": "Randomizes the 42 Lore Tablets in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "frayed_rosary_string_randomization": {
+      "key": "frayed_rosary_string_randomization",
+      "displayName": "Frayed Rosary String Randomization",
+      "description": "Randomizes the 19 Frayed Rosary Strings in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "rosary_string_randomization": {
+      "key": "rosary_string_randomization",
+      "displayName": "Rosary String Randomization",
+      "description": "Randomizes the 3 Rosary Strings in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "rosary_necklace_randomization": {
+      "key": "rosary_necklace_randomization",
+      "displayName": "Rosary Necklace Randomization",
+      "description": "Randomizes Rosary Necklaces, including wish rewards.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "heavy_rosary_necklace_randomization": {
+      "key": "heavy_rosary_necklace_randomization",
+      "displayName": "Heavy Rosary Necklace Randomization",
+      "description": "Randomizes Heavy Rosary Necklaces, including wish rewards and Loddie's second pin challenge.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "pale_rosary_necklace_randomization": {
+      "key": "pale_rosary_necklace_randomization",
+      "displayName": "Pale Rosary Necklace Randomization",
+      "description": "Randomizes the 2 Pale Rosary Necklaces in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "shard_bundle_randomization": {
+      "key": "shard_bundle_randomization",
+      "displayName": "Shard Bundle Randomization",
+      "description": "Randomizes the 12 Shard Bundles in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "beast_shard_randomization": {
+      "key": "beast_shard_randomization",
+      "displayName": "Beast Shard Randomization",
+      "description": "Randomizes the 7 Beast Shard upgrades in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "pristine_core_randomization": {
+      "key": "pristine_core_randomization",
+      "displayName": "Pristine Core Randomization",
+      "description": "Randomizes the 2 Pristine Cores in the game.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "rosary_cache_randomization": {
+      "key": "rosary_cache_randomization",
+      "displayName": "Rosary Cache Randomization",
+      "description": "Randomizes the 206 Rosary Caches in the game.\n\nIncludes hanging Rosaries, grave markers and other one-time Rosary stashes.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "shell_shard_cache_randomization": {
+      "key": "shell_shard_cache_randomization",
+      "displayName": "Shell Shard Cache Randomization",
+      "description": "Randomizes the 153 Shell Shard Caches in the game.\n\nThese are the Shards found in fossils that must be hit several times.\n\nfalse: leaves them where they normally are true: mixes them into the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "boss_souls": {
+      "key": "boss_souls",
+      "displayName": "Boss Souls (Beta)",
+      "description": "Randomize Boss Souls into the item pool. Bosses do not spawn and their respective arenas are not available until their \"soul\" has been collected. Bosses that have a gauntlet attached to them are the sole requirement for the gauntlet's spawn. Example: Groal's Soul makes his boss fight available and the Bilehaven gauntlet available as well.",
+      "experimental": true,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "npc_souls": {
+      "key": "npc_souls",
+      "displayName": "NPC Souls (Beta)",
+      "description": "Randomize NPC Souls into the item pool. NPCs do not spawn until their respective soul has been collected.",
+      "experimental": true,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "enemy_souls": {
+      "key": "enemy_souls",
+      "displayName": "Enemy Souls (Beta)",
+      "description": "Randomize Enemy Souls into the item pool. Enemies do not spawn and their respective gauntlets are not available until their \"soul\" has been collected. Bosses and boss gauntlets are affected by the boss souls option. Killing an enemy for the first time grants a check.",
+      "experimental": true,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "boss_sanity": {
+      "key": "boss_sanity",
+      "displayName": "Boss Credit Randomization",
+      "description": "Adds boss checks and replaces their filler with boss credit items. Receiving a credit grants that boss's story unlocks. Items dropped by bosses follow their own randomization settings.\n\nFight difficulty and arena exits stay with the boss you face. Act transitions still require their original fights.\n\nfalse: keeps the usual boss progression without extra checks true: boss credits can appear anywhere in the multiworld",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "journal_randomization": {
+      "key": "journal_randomization",
+      "displayName": "Journal Randomization",
+      "description": "Randomizes the Hunter's Journal and boss journal entries. Entries that need multiple kills have separate completion checks and items.\n\nfalse: keeps the usual journal true: mixes journal items into the multiworld",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "bell_shrine_sanity": {
+      "key": "bell_shrine_sanity",
+      "displayName": "Bell Shrine Randomization",
+      "description": "Randomizes the 5 Judge Bell Shrines.",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "wish_sanity": {
+      "key": "wish_sanity",
+      "displayName": "Wish Completion Checks",
+      "description": "Adds completion checks for wishes without a separately randomized item reward. Items earned from bosses and wishes follow their own randomization settings.\n\nfalse: no additional wish completion checks true: fills wish completion checks from the global item pool",
+      "experimental": false,
+      "kind": "global_randomization",
+      "default": false,
+      "aliases": {
+        "vanilla": false,
+        "off": false,
+        "false": false,
+        "anywhere": true,
+        "true": true
+      }
+    },
+    "shuffle_wish_offers": {
+      "key": "shuffle_wish_offers",
+      "displayName": "Shuffle Wish Offers",
+      "description": "EXPERIMENTAL FEATURE, should be fine but please don't bring to syncs\n\nShuffles supported wishes between boards and NPCs independently of Wish Completion Checks. Each wish keeps its tasks and story effects. Linked NPC follow-ups stay with their original NPCs.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "wish_plando": {
+      "key": "wish_plando",
+      "displayName": "Wish Offer Plando",
+      "description": "Fix which wish an offer gives. Requires Shuffle Wish Offers. Use wish names, with the original offer on the left and the wanted wish on the right. Example: {\"Wish: Berry Picking\": \"Wish: Final Audience\"} The remaining offers are shuffled. Assignments that block progression are rejected.",
+      "experimental": true,
+      "kind": "dict",
+      "default": {}
+    },
+    "individual_relic_turn_ins": {
+      "key": "individual_relic_turn_ins",
+      "displayName": "Individual Relic Turn-ins",
+      "description": "Make Scrounge's 15 relic and Cardinius's 6 cylinder deposits individual AP checks instead of paying Rosaries.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "silk_link": {
+      "key": "silk_link",
+      "displayName": "Silk Link",
+      "description": "Share only the base Spool's current Silk with other enabled Silksong players.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "rosary_link": {
+      "key": "rosary_link",
+      "displayName": "Rosary Link",
+      "description": "Share loose Rosary gains and costs with other enabled Silksong players.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "shell_shard_link": {
+      "key": "shell_shard_link",
+      "displayName": "Shell Shard Link",
+      "description": "Share base-pouch Shell Shard gains and costs with enabled Silksong players.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "knockback_link": {
+      "key": "knockback_link",
+      "displayName": "Knockback Link",
+      "description": "Share hit and Stagger Trap knockback with other enabled players.\n\nIncoming impacts use their direction at normal Stagger Trap strength.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "alphabet_mode": {
+      "key": "alphabet_mode",
+      "displayName": "Alphabet Mode",
+      "description": "Add Letter A through Letter Z to the item pool and hide unowned letters in game text.\n\nText filtering only runs while the game language is English. This needs at least 26 randomized filler rewards.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": false,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "trap_disguises": {
+      "key": "trap_disguises",
+      "displayName": "Trap Disguises",
+      "description": "Disguise traps as major items in shops, wishes and crest slots.\n\nShop and wish icons are mirrored. Shop and crest-slot names contain small typos.",
+      "experimental": false,
+      "kind": "toggle",
+      "default": true,
+      "aliases": {
+        "false": false,
+        "off": false,
+        "true": true,
+        "on": true
+      }
+    },
+    "trap_percentage": {
+      "key": "trap_percentage",
+      "displayName": "Trap Percentage",
+      "description": "Percent of eligible filler items in the random pool replaced by traps.\n\nIf every trap weight is zero, no traps are added.",
+      "experimental": false,
+      "kind": "range",
+      "default": 0,
+      "min": 0,
+      "max": 100
+    },
+    "stagger_trap_weight": {
+      "key": "stagger_trap_weight",
+      "displayName": "Stagger Trap Weight",
+      "description": "Relative frequency of Stagger Traps, zero disables them.\n\nWhen staggered, Hornet receives knockback but takes no damage.",
+      "experimental": false,
+      "kind": "range",
+      "default": 25,
+      "min": 0,
+      "max": 100
+    },
+    "rosary_spill_trap_weight": {
+      "key": "rosary_spill_trap_weight",
+      "displayName": "Rosary Spill Trap Weight",
+      "description": "Relative frequency of Rosary Spill Traps, zero disables them.",
+      "experimental": false,
+      "kind": "range",
+      "default": 25,
+      "min": 0,
+      "max": 100
+    },
+    "darkness_trap_weight": {
+      "key": "darkness_trap_weight",
+      "displayName": "Darkness Trap Weight",
+      "description": "Relative frequency of Darkness Traps, zero disables them.\n\nThe screen is darkened to a small area of light around Hornet for 20 seconds.",
+      "experimental": false,
+      "kind": "range",
+      "default": 25,
+      "min": 0,
+      "max": 100
+    },
+    "cursed_crest_trap_weight": {
+      "key": "cursed_crest_trap_weight",
+      "displayName": "Cursed Crest Trap Weight",
+      "description": "Relative frequency of Cursed Crest Traps, zero disables them.\n\nHornet is inflicted with the Cursed Crest for 90 seconds, as if she had done the Rite of Rebirth quest with Greyroot.",
+      "experimental": false,
+      "kind": "range",
+      "default": 25,
+      "min": 0,
+      "max": 100
+    },
+    "muckmaggot_status_trap_weight": {
+      "key": "muckmaggot_status_trap_weight",
+      "displayName": "Muckmaggot Status Trap Weight",
+      "description": "Relative frequency of Muckmaggot Status Traps, zero disables them.\n\nHornet is afflicted with Muckmaggots as if she fell into Bilewater. Binding or using a bench removes them.",
+      "experimental": false,
+      "kind": "range",
+      "default": 25,
+      "min": 0,
+      "max": 100
+    },
+    "naked_trap_weight": {
+      "key": "naked_trap_weight",
+      "displayName": "Naked Trap Weight",
+      "description": "Relative frequency of 90-second Naked Traps, zero disables them.\n\nHornet is left naked as if she were in the Slab escape sequence for 90 seconds.",
+      "experimental": false,
+      "kind": "range",
+      "default": 25,
+      "min": 0,
+      "max": 100
+    },
+    "literacy_trap_weight": {
+      "key": "literacy_trap_weight",
+      "displayName": "Literacy Trap Weight",
+      "description": "Relative frequency of Literacy Traps, zero disables them.\n\nInterrupts with a randomly selected passage of pre-written text. Advance each dialogue box to regain control while the action continues around you.",
+      "experimental": false,
+      "kind": "range",
+      "default": 25,
+      "min": 0,
+      "max": 100
+    },
+    "shader_trap_weight": {
+      "key": "shader_trap_weight",
+      "displayName": "Shader Trap Weight",
+      "description": "Relative frequency of Shader Traps, zero disables them.\n\nApplies a shader to the game camera with the potential shaders: Oil Painting, Grayscale",
+      "experimental": false,
+      "kind": "range",
+      "default": 25,
+      "min": 0,
+      "max": 100
+    }
+  },
+  "catalogueCounts": {
+    "bossSouls": {
+      "1": 13,
+      "2": 43,
+      "3": 46
+    },
+    "npcSouls": {
+      "1": 47,
+      "2": 59,
+      "3": 59
+    },
+    "enemySoulsTotal": 185
+  }
+}

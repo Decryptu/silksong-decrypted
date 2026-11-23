@@ -12,6 +12,8 @@ The BepInEx plugin is in `src/SilksongRandomizer`. The Python world, logic, opti
 $env:SILKSONG_GAME_DIR = 'C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight Silksong'
 dotnet build src/SilksongRandomizer/SilksongRandomizer.csproj --configuration Release
 python tools/build_apworld.py --output dist/silksong.apworld
+python tools/export_yaml_schema.py --check
+node --test tools/test_yaml_generator.mjs
 python -m http.server 8000 --directory site
 ```
 
@@ -113,6 +115,15 @@ With both fixes built in Release and loaded in Silksong 1.0.30000 on slot 4, ent
 For a generation check, use the solo YAML above with `goal: act_3`, `silk_heart_randomization: anywhere`, `old_heart_randomization: anywhere`, and `everbloom_randomization: anywhere`. Run seed `12345` with `--spoiler 2`. Archipelago 0.6.8 generated a playthrough ending in `Goal: Victory`. This verifies that the generator can fill that configuration.
 
 For Unity research, reuse an existing ILSpy command-line installation with `ilspycmd -t <Type> <path-to-Assembly-CSharp.dll>`. Inspect individual types as needed and keep all decompiled output outside the repository.
+
+## First-party YAML generator
+
+The web YAML generator lives in `site/yaml.html`, backed by `site/yaml-core.js`, `site/yaml-ui.js`, and the generated schema in `site/yaml-schema.json`.
+
+- Run `python tools/export_yaml_schema.py` whenever `APWorld/silksong/options.py` or `APWorld/silksong/version.py` changes. Pass `--check` to verify the committed schema is up to date, and optionally `--archipelago-lib <path-to-library.zip>` to cross-check against Archipelago's `Options` module.
+- Run `node --test tools/test_yaml_generator.mjs` to test schema integrity, all seven presets (compact and full-defaults round-trips), YAML alias/weighted-choice import, incompatibility validation with quick fixes, and DOM/asset references.
+- Run `python tools/verify_yaml_exports.py --rebuild-apworld` to verify exported YAMLs against `ArchipelagoGenerate.exe` (Archipelago 0.6.8). All seven solo presets (including full-defaults `standard` on seed `12345` and `experimental_chaos` on seed `54321`) and a three-player mixed multiworld (`Hornet`, `Lace`, `Shakra`) generated valid room ZIP archives.
+- Clean-profile browser verification against a local static server covered both `site/index.html` (all Join/Host × manual/Cogfly/r2modman checklist branches, progress persistence, reset, and checklist link into `yaml.html`) and `site/yaml.html` (all presets, search/changed-only/Beta filters, incompatibility validation with quick fixes, `.yaml` file import, clipboard copy, `.yaml` download verified with `ArchipelagoGenerate.exe`, reset defaults persistence, and zero horizontal overflow across `1280x900`, `995x850`, and `390x844` viewports with zero console or HTTP errors).
 
 ## Contributions
 

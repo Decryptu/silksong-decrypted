@@ -21,7 +21,7 @@ const STEPS = {
   ],
   common: [
     ["ap-launcher", "Install Archipelago", `Get the <a href="https://github.com/ArchipelagoMW/Archipelago/releases/latest">Archipelago launcher</a> (0.6.8 or newer).`],
-    ["ap-yaml", "Make your options file", "Options Creator → Hollow Knight: Silksong → Export. Send it to your host, or keep it if you host."]
+    ["ap-yaml", "Make your options file", `Use the <a href="./yaml.html">Silksong Decrypted YAML Generator</a> (or Archipelago's Options Creator) to export your <code>.yaml</code>. Send it to your host, or keep it if you host.`]
   ],
   host: [
     ["h-players", "Collect every YAML", "Put all players' option files in Archipelago's Players folder."],
