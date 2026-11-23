@@ -11,7 +11,7 @@ The BepInEx plugin is in `src/SilksongRandomizer`. The Python world, logic, opti
 ```powershell
 $env:SILKSONG_GAME_DIR = 'C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight Silksong'
 dotnet build src/SilksongRandomizer/SilksongRandomizer.csproj --configuration Release
-python tools/package_release.py --version 0.5.5-rc.2 --output-dir dist/release-0.5.5-rc.2
+python tools/package_release.py --version 0.5.5-rc.3 --output-dir dist/release-0.5.5-rc.3
 python tools/export_yaml_schema.py --check
 node --test tools/test_yaml_generator.mjs
 python -m http.server 8000 --directory site
@@ -47,6 +47,8 @@ The `0.5.5-rc.1` plugin ZIP and `silksong.apworld` were packaged from revision `
 The extracted plugin joined the two-player room on Silksong 1.0.30000 with BepInEx 5.4.23.3. A fresh save sent the opening Hunter Crest check and received Shaman Crest. A controlled Delver's Drill check from Lace delivered a Flea to Hornet, which was recorded in the native save alongside the opening check. A local virtual controller supplied the opening held input. After a process restart with only the release package installed, Hornet reconnected and loaded the same save into Moss Grotto. See [player setup](SETUP.md) for the manual install and room workflow.
 
 `v0.5.5-rc.2` fixed missing `CheckIcons/*.png` assets in the Release output and plugin ZIP (both copied to `CheckIcons/` and embedded as fallback resources), pointed the in-game version-mismatch help URL to `SETUP.md#troubleshoot`, added persistent rolling session logs (`BepInEx/SilksongDecrypted/logs/`) plus one-click Playtest Report ZIP export (`SilksongDecryptedReports/`) in a new **F3 → Playtest** tab, updated the site setup checklist so joining players skip host-only Archipelago Launcher steps, and added `tools/package_release.py`. Verified clean Release build (0 warnings, 0 errors), all 7 solo YAML presets + full-defaults + 3-player mixed multiworld on Archipelago 0.6.8, and a live Silksong 1.0.30000 boot of the extracted `SilksongDecrypted-0.5.5-rc.2.zip` confirming `Silksong Decrypted 0.5.5 (0.5.5-rc.2) loaded.`, zero missing-icon warnings, all 609 Harmony patch groups loaded, and automatic session log creation.
+
+`v0.5.5-rc.3` replaced the map logic mismatch error (`Map logic does not match this mod`) with a message that names the cause: the room was generated with a different Silksong APWorld, usually the original BatAtVideoGames `silksong.apworld`, which also reports world version 0.5.5. The F3 panel now links that error to the troubleshooting guide. The map logic identity is unchanged from rc.1 and rc.2 (`983d3b57`), so rooms generated with those APWorlds still connect. Verified a clean Release build with .NET SDK 9.0.321 (0 warnings, 0 errors), matching map logic identities in the packaged plugin and APWorld, the new error raised by the packaged DLL for a foreign identity, and solo and three-player generation from seed `12345` on Archipelago 0.6.8. The rc.3 package was not boot-tested in game; the only plugin change is the error text.
 
 ## Map tracker smoke test
 

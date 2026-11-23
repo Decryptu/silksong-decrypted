@@ -41,7 +41,10 @@ namespace SilksongRandomizer
         {
             LogicData data = Data.Value;
             if (!string.Equals(identity, data.Identity, StringComparison.Ordinal))
-                throw new FormatException("Map logic does not match this mod. Install the mod supplied with this APWorld.");
+                throw new FormatException(
+                    "This room was generated with a different Silksong APWorld (for example the original " +
+                    "BatAtVideoGames release). Ask the host to generate a new room with silksong.apworld from " +
+                    "the same Silksong Decrypted release as this mod." + Archipelago.VersionHelpSuffix);
             changes = Expand(changes);
             if (changes == null || changes.Properties().Any(p => ((JObject)data.Payload["logic"]).Property(p.Name) == null))
                 throw new FormatException("Invalid map logic overrides.");

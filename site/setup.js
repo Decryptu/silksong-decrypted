@@ -1,10 +1,10 @@
 const KEY = "silksong-decrypted-setup-v2";
-const DOWNLOAD = "https://github.com/Decryptu/silksong-decrypted/releases/download/v0.5.5-rc.2";
+const DOWNLOAD = "https://github.com/Decryptu/silksong-decrypted/releases/download/v0.5.5-rc.3";
 
 const STEPS = {
   manual: [
     ["mn-bep", "Install BepInEx 5 (Windows x64)", `Extract Windows x64 <a href="https://github.com/BepInEx/BepInEx/releases">BepInEx 5</a> (5.4.23.x, not BepInEx 6) next to <code>Hollow Knight Silksong.exe</code>. Launch Silksong once, then close it.`],
-    ["mn-plugin", "Add the Silksong Decrypted plugin", `Extract <a href="${DOWNLOAD}/SilksongDecrypted-0.5.5-rc.2.zip">SilksongDecrypted-0.5.5-rc.2.zip</a> into the game folder and confirm <code>BepInEx/plugins/SilksongDecrypted/SilksongRandomizer.dll</code> exists. Remove any other Silksong randomizer plugin first, including one installed by Cogfly or r2modman (their profile codes install the upstream mod, not Silksong Decrypted).`]
+    ["mn-plugin", "Add the Silksong Decrypted plugin", `Extract <a href="${DOWNLOAD}/SilksongDecrypted-0.5.5-rc.3.zip">SilksongDecrypted-0.5.5-rc.3.zip</a> into the game folder and confirm <code>BepInEx/plugins/SilksongDecrypted/SilksongRandomizer.dll</code> exists. Remove any other Silksong randomizer plugin first, including one installed by Cogfly or r2modman (their profile codes install the upstream mod, not Silksong Decrypted).`]
   ],
   host: [
     ["ap-launcher", "Install Archipelago", `Get the <a href="https://github.com/ArchipelagoMW/Archipelago/releases/latest">Archipelago launcher</a> (0.6.8 or newer; older versions cannot load the Silksong world).`],

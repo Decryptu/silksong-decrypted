@@ -1,11 +1,11 @@
 # Set up Silksong Decrypted
 
-Use the plugin ZIP and `silksong.apworld` from the same Silksong Decrypted build. The Windows release candidate was tested with Silksong 1.0.30000, BepInEx 5.4.23.3, and Archipelago 0.6.8. [Download v0.5.5-rc.2](https://github.com/Decryptu/silksong-decrypted/releases/tag/v0.5.5-rc.2)
+Use the plugin ZIP and `silksong.apworld` from the same Silksong Decrypted build. The Windows release candidate was tested with Silksong 1.0.30000, BepInEx 5.4.23.3, and Archipelago 0.6.8. [Download v0.5.5-rc.3](https://github.com/Decryptu/silksong-decrypted/releases/tag/v0.5.5-rc.3)
 
 ## Install the plugin on Windows
 
 1. With Silksong closed, install a Windows x64 BepInEx 5 build (5.4.23.x, not BepInEx 6) in the folder containing `Hollow Knight Silksong.exe`. Launch Silksong once and close it so BepInEx can initialize its folders.
-2. Extract `SilksongDecrypted-0.5.5-rc.2.zip` into the game folder. Confirm that `BepInEx/plugins/SilksongDecrypted/` contains `SilksongRandomizer.dll`, `Archipelago.MultiClient.Net.dll`, `Newtonsoft.Json.dll`, and the `CheckIcons/` folder.
+2. Extract `SilksongDecrypted-0.5.5-rc.3.zip` into the game folder. Confirm that `BepInEx/plugins/SilksongDecrypted/` contains `SilksongRandomizer.dll`, `Archipelago.MultiClient.Net.dll`, `Newtonsoft.Json.dll`, and the `CheckIcons/` folder.
 3. If you already use a Silksong randomizer, move its plugin folder out of `BepInEx/plugins` before launching. Use one randomizer plugin per profile.
 4. Launch Silksong. The Archipelago connection panel should appear. Press **F3** to reopen it.
 
@@ -64,6 +64,7 @@ To share your playtest session or report a bug:
 
 - **Generate says `File Hornet.yaml is invalid. Please fix your yaml.`** The YAML is usually fine; Archipelago cannot find the Silksong world. Scroll up in the console: `No world found to handle game Hollow Knight: Silksong` confirms it. Update Archipelago to 0.6.8 or newer (older versions refuse this APWorld), drag `silksong.apworld` onto the Launcher again, then fully close and reopen the Launcher before generating. Keep only one Silksong APWorld in `custom_worlds`.
 - **F3 has no effect.** Check `BepInEx/LogOutput.log` for a Silksong Decrypted load entry. Confirm the ZIP's `BepInEx` folder was merged at the game root and check the log for missing dependencies or duplicate plugins.
+- **F3 says the room was generated with a different Silksong APWorld** (older builds said `Map logic does not match this mod`). The host generated the room with another Silksong APWorld, most often the original BatAtVideoGames `silksong.apworld`, which also reports version 0.5.5. Reinstalling the plugin does not help. The host must delete the Silksong APWorld from Archipelago's `custom_worlds` folder, install `silksong.apworld` from the same [Silksong Decrypted release](https://github.com/Decryptu/silksong-decrypted/releases) as the plugin, restart the Launcher, generate again, and open a new room.
 - **The room rejects the connection.** Confirm the host, port, slot name and password. If it reports a compatibility mismatch, ask the host which APWorld generated the room and install the matching plugin.
 - **An existing randomizer save is missing.** Check the save folder notice in F3. The game can use a different save folder when its account service is unavailable. Restore the usual account context before choosing a new slot.
 - **You are stuck in an area.** When available, **F4** returns you to the selected recovery destination. Use the arrows in the F3 panel to choose among destinations the current save has unlocked.

@@ -178,7 +178,8 @@ def encode(payload, slot_data):
 def restore(slot_data):
     identity, data = load_base()
     if slot_data.get("logic_base") != identity:
-        raise ValueError("Map logic does not match this APWorld. Use the matching APWorld and mod.")
+        raise ValueError("This room was generated with a different Silksong APWorld. "
+                         "Generate a new room with silksong.apworld from the same Silksong Decrypted release.")
     base = prepare_base(data, slot_data)
     changes = slot_data.get("logic_overrides")
     copy_values = True

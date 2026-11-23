@@ -31,7 +31,7 @@ namespace SilksongRandomizer
         public const string PluginGuid = "moriko.silksong.randomizer";
         public const string PluginName = "Silksong Decrypted";
         public const string PluginVersion = "0.5.5";
-        public const string ReleaseLabel = "0.5.5-rc.2";
+        public const string ReleaseLabel = "0.5.5-rc.3";
 
         public static bool OverrideUnlock { get; set; } = true;
 
