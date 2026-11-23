@@ -6,7 +6,7 @@ An unofficial Archipelago randomizer for Hollow Knight: Silksong. Shuffle progre
 - [Windows prerelease (v0.5.5-rc.3)](https://github.com/Decryptu/silksong-decrypted/releases/tag/v0.5.5-rc.3)
 - [Silksong Decrypted player setup](SETUP.md)
 - [Development setup](DEVELOPMENT.md)
-- [Roadmap](ROADMAP.md)
+- [Roadmap](ROADMAP.md) and [reference mods](ECOSYSTEM.md)
 - [Upstream player setup and existing releases](https://github.com/Batatvideogames/silksong-archipelago-randomizer#requirements-and-installation)
 
 This checkout starts from BatAtVideoGames’ Silksong Archipelago Randomizer. The initial development baseline retains the upstream Archipelago game name, item and location IDs, slot compatibility version, plugin GUID, and packaging layout. The project is distributed under the upstream [MIT license](LICENSE).
