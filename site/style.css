@@ -85,10 +85,10 @@ h2 { font-weight: 400; text-transform: uppercase; letter-spacing: .22em; font-si
 .steps input::after { content: ""; width: .55rem; height: .55rem; background: var(--gold); transform: scale(0); transition: transform .15s; }
 .steps input:checked { border-color: var(--gold); }
 .steps input:checked::after { transform: scale(1); }
-.steps b { display: block; font-weight: 400; }
-.steps b::before { content: counter(s) ". "; color: var(--gold); }
-.steps span { color: var(--dim); font-size: 1rem; }
-.steps li:has(input:checked) b { color: var(--dim); text-decoration: line-through; text-decoration-color: var(--line); }
+.steps label > div > b { display: block; font-weight: 400; }
+.steps label > div > b::before { content: counter(s) ". "; color: var(--gold); }
+.steps label > div > span { color: var(--dim); font-size: 1rem; }
+.steps li:has(input:checked) label > div > b { color: var(--dim); text-decoration: line-through; text-decoration-color: var(--line); }
 .steps code { font-family: ui-monospace, Consolas, monospace; font-size: .85em; color: var(--ink); background: #ffffff0d; padding: .05em .35em; user-select: all; }
 
 .hint { text-align: center; color: var(--dim); font-style: italic; }
