@@ -49,7 +49,7 @@
       <header class="panel-head">
         <h2 id="setup-h">Setup</h2>
         <svg class="rule small" aria-hidden="true"><use href="#rule"/></svg>
-        <p>Answer two questions, then tick each step. Progress stays in this browser.</p>
+        <p>Pick your role, then tick each step. Progress stays in this browser.</p>
         <div class="progress" aria-live="polite"><div class="track"><div class="fill" id="fill"></div></div><span id="count">0 / 0</span></div>
       </header>
 
@@ -59,15 +59,8 @@
         <label><input type="radio" name="role" value="host"><span>Hosting a game</span><small>You generate the seed for everyone.</small></label>
       </fieldset>
 
-      <fieldset class="choice">
-        <legend>How do you install mods?</legend>
-        <label><input type="radio" name="install" value="manual"><span>Silksong Decrypted</span><small>Install v0.5.5-rc.2 manually on Windows.</small></label>
-        <label><input type="radio" name="install" value="cogfly"><span>Upstream via Cogfly</span><small>Import the upstream mod profile.</small></label>
-        <label><input type="radio" name="install" value="r2"><span>Upstream via r2modman</span><small>Import the upstream mod profile.</small></label>
-      </fieldset>
-
       <ol class="steps" id="steps"></ol>
-      <p class="hint" id="hint">Choose both answers to see your steps.</p>
+      <p class="hint" id="hint">Choose your role to see your steps.</p>
       <button type="button" class="reset" id="reset">Reset progress</button>
     </section>
 

@@ -13,9 +13,6 @@ You can look at more features of the randomizer on the [features page](APWorld/s
 - [Table of Contents](#table-of-contents)
 - [What is randomized?](#what-is-randomized)
 - [Requirements and Installation](#requirements-and-installation)
-  - [Installation with Cogfly](#using-cogfly-125)
-  - [Installation with R2Modman / Thunderstore Manager](#using-r2modman-3218--thunderstore-manager-11231)
-  - [Manual Installation](#manually)
 - [Archipelago Setup](#archipelago-setup)
 - [Frequently Asked Questions (FAQ)](#frequently-asked-questions-faq)
 - [Support and Additional Information](#support-and-additional-information)
@@ -37,74 +34,25 @@ The exact checks and options available can change as the randomizer develops. Us
 - Archipelago (v0.6.8+)
 - The Archipelago client included with the release or your Archipelago installation
 
-There are multiple installation methods due to different issues with each of them at times, follow one of the methods below to install the Archipelago randomizer.
+Silksong Decrypted is not published on Thunderstore, so Cogfly and r2modman profile codes cannot install it. Codes shared for those managers install the original upstream randomizer instead, which is not compatible with Silksong Decrypted seeds. Install it manually:
 
-### Using Cogfly (1.2.5+)
-1.) First start off by installing [Cogfly](https://github.com/Nix-main/Cogfly/releases/latest) to the latest version for your preferred operating system.
+1.) Find your Hollow Knight: Silksong installation folder (the folder containing `Hollow Knight Silksong.exe`).
 
-2.) Launch Cogfly and go to settings and make sure your path to your Silksong installation are valid.
+2.) Download Windows x64 [BepInEx 5](https://github.com/BepInEx/BepInEx/releases) (5.4.23.x, not BepInEx 6) and extract it into the game folder.
 
-3.) Go to profiles, select import from code, and enter the following profile code. 
+3.) Launch Silksong once so BepInEx can initialize, then close the game.
 
-The profile code contains the Archipelago Randomizer Mod, Custom Music Randomizer, Crest Wheel, Silksong Archip Display, Recent Items Display, Mod Menu, Mod List, and all other dependencies (CanvasUtil, DataManager, FsmUtil, I18N, BepInExPack_Silksong, Monodeteour_BepInEx_5, UnityHelper, MonoDetour, WavLib).
+4.) Download `SilksongDecrypted-<version>.zip` from the [Silksong Decrypted releases](https://github.com/Decryptu/silksong-decrypted/releases/latest) and extract it into the game folder. Remove any other Silksong randomizer plugin (including one installed by Cogfly or r2modman) first.
 
-> [!WARNING]
-> If you get an error when importing a code into Cogfly, especially the error below, refer to [here](#cogfly---getting-a-server-returned-http-response-code-502-error):
-> 
-> **Server returned HTTP response code: 502 for URL**
+5.) Confirm `BepInEx/plugins/SilksongDecrypted/SilksongRandomizer.dll` exists.
 
-**NOTE: Please make sure to press "Update Mods" when installing or when new versions release and it'll automatically update you to the latest version of the mod.**
-
-**Cogfly Import Code:** `01a1bd74-2ab1-af6c-d1e3-7d4c97d62492` (Same as R2Modman)
-
-### Using R2Modman (3.2.18+) / Thunderstore Manager (1.123.1+)
-1.) First start off by installing [R2Modman](https://r2modman.com/download-latest/) to the latest version for your preferred operating system.
-
-2.) Select Hollow Knight: Silksong in the Game Selection Menu and select your Silksong storefront.
-
-3.) In profile selection, select 'Import / Update', select 'From code', and enter the following profile code. 
-
-The profile code contains the Archipelago Randomizer Mod, Custom Music Randomizer, Crest Wheel, Silksong Archip Display, Recent Items Display, Mod Menu, Mod List, and all other dependencies (CanvasUtil, DataManager, FsmUtil, I18N, BepInExPack_Silksong, Monodeteour_BepInEx_5, UnityHelper, MonoDetour, WavLib).
-
-**NOTE: Please make sure to press "Update Mods" when installing or when new versions release and it'll automatically update you to the latest version of the mod.**
-
-**R2Modman Import Code:** `01a1bd74-2ab1-af6c-d1e3-7d4c97d62492` (Same as Cogfly)
-
-### Manually
-1.) Find your Hollow Knight: Silksong installation folder based on your Silksong storefront.
-
-2.) Download the latest release of [BepInEx](https://github.com/BepInEx/BepInEx/releases) for your preferred operating system.
-
-3.) Drag all the contents of the BepInEx zip file that you downloaded into your Silksong game folder where the game's .exe resides.
-
-4.) Launch Silksong once for the BepInEx files to initialize and then close the game.
-
-5.) Download the Silksong Randomizer's [latest release](https://github.com/Batatvideogames/silksong-archipelago-randomizer/releases/latest) .rar file.
-
-6.) There will be a folder named "PUT IN SILKSONG FOLDER" with a 'BepInEx' folder inside it. Drag the 'BepInEx' folder from the zip file into your Silksong installation folder. This will merge or prompt you to merge the folders which is what you want to do.
-
-The resulting folder structure should look something like:
-
-```
-- 📂 BepInEx
-  | - 📂 plugins
-    | - 📂 Silksong Randomizer
-  | - 📂 config
-  | - 📂 core
-  | - 📂 patchers
-- 📂 D3D12
-- 📂 Hollow Knight Silksong_Data
-- 📂 MonoBleedingEdge
-- 📜 Hollow Knight Silksong.exe
-```
-
- **OPTIONAL**: If you want any of the other additional mods mentioned, you can find them on Thunderstore, download them, and place them into the 'plugins' folder found in the 'BepInEx' folder in your Silksong game installation folder.
+If you previously used Cogfly or r2modman, launch the game directly from Steam without their launch arguments.
 
 ## Archipelago Setup
 
 1.) Download the [Archipelago Launcher](https://github.com/ArchipelagoMW/Archipelago/releases/latest) for your preferred operating system.
 
-2.) Download the Silksong Randomizer's [latest release](https://github.com/Batatvideogames/silksong-archipelago-randomizer/releases/latest) .apworld file.
+2.) Download the Silksong Decrypted [latest release](https://github.com/Decryptu/silksong-decrypted/releases/latest) `silksong.apworld` file. Keep only one Silksong APWorld installed.
 
 3.) Launch the Archipelago Launcher and drag the .apworld file into the client. Restart the Archipelago Launcher after installing the apworld.
 
@@ -148,49 +96,7 @@ Long answer, it can cause softlocks and other issues, it can be used but at your
 ### I Got An Error Saying My APWorld Version is Incompatible
 This occurs when you've changed your Randomizer Mod to a new version for an update while having your world generated on an old one.
 
-Use one of the installation methods to downgrade. Manual is preferred for downgrading.
-
-Given that Cogfly has some issues currently with import codes, you can downgrade manually by pressing the link attached to the version numbers below and then follow the steps. 
-
-Alternatively, you can always replace Cogfly with a different mod manager that allows for downgrading. Downgrading on those mod managers can typically be done by uninstalling the mod and then reinstalling it and selecting the appropriate version to your generated run.
-
-#### Manual Downgrading
-
-1.) Go to your BepInEx plugins folder, depending on your install this is located in one of two places. 
-   - For a manual installation it should be in your game directory. 
-   - For a mod manager, you want to go into the profile folder. For R2ModMan, this is in "Settings > Profile Folder". For Cogfly, go into the profile and press "Open Profile Folder".
-
-2.) Go into the "BepInEx" folder. Go into the "plugins" folder. Go into the "Silksong Randomizer" folder this can also be named "BatAtVideoGames-SilksongArchipelagoRandomizer". A file named "SilksongRandomizer.dll" will be present in the folder, you want to replace this file using the version in one of the .rar files from below.
-
-3.) Start up your game normally after replacing and you should be able to connect once again.
-
-#### Old Import Codes
-
-[**v0.5.5**](https://github.com/Batatvideogames/silksong-archipelago-randomizer/releases/tag/v0.5.5) Import Code: `01a1bd74-2ab1-af6c-d1e3-7d4c97d62492`
-
-[**v0.5.4**](https://github.com/Batatvideogames/silksong-archipelago-randomizer/releases/tag/v0.5.4) Import Code: `01a199f2-e780-ee3e-dcf9-9cdff4c98dce`
-
-[**v0.5.3**](https://github.com/Batatvideogames/silksong-archipelago-randomizer/releases/tag/v0.5.3) Import Code: `01a18ae7-61f6-2d35-4c42-ed7578c6fc75`
-
-[**v0.5.2**](https://github.com/Batatvideogames/silksong-archipelago-randomizer/releases/tag/v0.5.2) Import Code: `01a15150-4496-f47c-5102-41aae48899c7`
-
-[**v0.5.1**](https://github.com/Batatvideogames/silksong-archipelago-randomizer/releases/tag/v0.5.1) Import Code: `01a12cf3-f4cb-5402-d6a8-0f266b3e7aa8`
-
-[**v0.5.0**](https://github.com/Batatvideogames/silksong-archipelago-randomizer/releases/tag/v0.5.0) Import Code: `01a109ba-4c4f-b4f0-8695-8b4d42cb8159`
-
-### My Mod Manager Boots The Game In Vanilla
-For **Cogfly**, press 'Copy Launch Arguments' at the top. Go to Hollow Knight: Silksong on Steam, right-click and press "Properties...". In Launch Options, paste the the arguments Cogfly copied for you and start your game.
-
-If this still doesn't work, make sure your Silksong folder doesn't have any BepInEx files (folder and doorstop files) from the manual installation. This *can* conflict with the mod managers and Cogfly will place these back for you.
-
-Worst case scenario, delete your Silksong folder, reinstall it using Verify Integrity of Game Files, relaunch Cogfly, then import the a new profile with one of the codes.
-
-### Cogfly - Getting a Server Returned HTTP Response Code 502 Error
-This has been happening for a little bit where it seems that Cogfly is having a connection issue with Thunderstore. 
-Try manually installing the mod list using the photo below, [swap to R2Modman](https://github.com/Batatvideogames/silksong-archipelago-randomizer#using-r2modman-3218--thunderstore-manager-11231) using the same code, or try a [manual install](https://github.com/Batatvideogames/silksong-archipelago-randomizer#manually).
-
-
-<img src="https://pandora.auroramoonlight.xyz/gFX2I9VqSNGd.png" />
+Install the Silksong Decrypted plugin and `silksong.apworld` from the same [release](https://github.com/Decryptu/silksong-decrypted/releases). To switch versions, download the matching `SilksongDecrypted-<version>.zip`, extract it over your game folder so it replaces `BepInEx/plugins/SilksongDecrypted/SilksongRandomizer.dll`, then reconnect.
 
 ### Additional common issues or troubleshooting steps to take
 
