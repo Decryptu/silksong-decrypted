@@ -116,6 +116,15 @@ For a generation check, use the solo YAML above with `goal: act_3`, `silk_heart_
 
 For Unity research, reuse an existing ILSpy command-line installation with `ilspycmd -t <Type> <path-to-Assembly-CSharp.dll>`. Inspect individual types as needed and keep all decompiled output outside the repository.
 
+## Bellhome Act 3 phase toggle
+
+Verified the Act 3 ↔ late Act 2 world-phase toggle (`BellhomePhasePatches.cs`) live on Silksong 1.0.30000 using the Release plugin on dedicated test slot 4 and virtual gamepad inputs (`RightTrigger` for Dash, `Action4` for Needolin, `Action1` for Submit, `Action2` for Cancel):
+
+- **Scene and bench bindings.** `Belltown_Room_Spare` exposes `RestBench` (`Bench Control` FSM, `Resting` state with `ListenForDreamNail`) and exit gate `left1` → `Belltown/door5`, matching `BellhomePhaseManager`.
+- **Unlock gating and input order.** Before Act 3 wake-up (`blackThreadWorld = false`, `act3_wokeUp = false`, `bellhomePhaseToggleUnlocked = false`), holding Dash and pressing Needolin on the Bellhome bed did not open a prompt. Once Act 3 wake-up was complete (`blackThreadWorld = true`, `act3_wokeUp = true`), `BellhomePhaseManager.Update()` unlocked `bellhomePhaseToggleUnlocked = true`. Because the hook checks `Dash.IsPressed` alongside `DreamNail.WasPressed`, players must hold Dash and then press Needolin while resting; verified this triggers even with `hasDash = false`, `hasNeedolin = false`, and `silk = 0`.
+- **Cancel and Act 3 → Act 2 revert.** Pressing Cancel (`Action2`) closed `DialogueYesNoBox` cleanly and kept Hornet resting on `RestBench` with `blackThreadWorld = true`. Confirming Yes (`Action1`) on `"Return Pharloom to its late Act 2 state? Your Act 3 progress will be preserved."` saved automatically, logged `Bellhome shifted Pharloom to the late Act 2 world phase.`, reloaded `Belltown_Room_Spare/left1` cleanly (`controlReqlinquished = false`), flipped `blackThreadWorld = false` and `MapLogicEvaluator.IsActThreeActive = false`, and preserved `act3_wokeUp`, `bellhomePhaseToggleUnlocked`, `visitedAbyss`, `completedAbyssAscent`, and `CompletedRedMemory`. Exiting through `left1` into `Belltown` loaded Bellhart in its Act 2 state (`Black Thread World` and `Song Region Act3` inactive).
+- **Persistence and Act 2 → Act 3 restore.** Closing and relaunching Silksong and reloading slot 4 from disk restored `Belltown_Room_Spare` with `blackThreadWorld = false` and `<bellhomePhaseToggleUnlocked>true</bellhomePhaseToggleUnlocked>` intact. Holding Dash + pressing Needolin on the bed opened `"Restore the Black Thread world and return to Act 3? Your Act 3 progress will be preserved."`, and confirming Yes saved, reloaded `Belltown_Room_Spare/left1` with `blackThreadWorld = true` and `MapLogicEvaluator.IsActThreeActive = true`, preserved Act 3 flags, and restored Bellhart's Act 3 Black Thread state upon exiting to `Belltown`. See [player setup](SETUP.md#return-to-act-2-from-act-3).
+
 ## First-party YAML generator
 
 The web YAML generator lives in `site/yaml.html`, backed by `site/yaml-core.js`, `site/yaml-ui.js`, and the generated schema in `site/yaml-schema.json`.

@@ -29,6 +29,16 @@ Use the plugin ZIP and `silksong.apworld` from the same Silksong Decrypted build
 2. Start a new randomizer save in an empty slot. Keep this save paired with the same room and slot. The opening Crest is an early check you can use to confirm that the server sees your progress.
 3. To resume, use the game's **Save and Quit** menu, reconnect to the same room if needed, and select the same in-game save.
 
+## Return to Act 2 from Act 3
+
+If you entered Act 3 and still need checks that are only available in Act 2, you can toggle Pharloom between its late Act 2 and Act 3 world phases from your Bellhome in upper Bellhart:
+
+1. Unlock your Bellhome in Bellhart and complete the Act 3 wake-up sequence on that randomizer save.
+2. Enter your Bellhome and rest on the bed.
+3. While resting on the bed, **hold Dash** (Swift Step) and **press Needolin**. The trigger follows your current Dash and Needolin bindings, works without Silk, and does not require cancelling the bench first.
+4. Confirm **Yes** on the prompt (`Return Pharloom to its late Act 2 state? Your Act 3 progress will be preserved.`). The game saves automatically and reloads the Bellhome in the late Act 2 world phase while keeping your Act 3 progress. Selecting **No** leaves you resting on the bed without changing the world phase.
+5. To return to Act 3 later, rest on the Bellhome bed again, **hold Dash** and **press Needolin**, and confirm **Yes** (`Restore the Black Thread world and return to Act 3? Your Act 3 progress will be preserved.`).
+
 ## Troubleshoot
 
 - **F3 has no effect.** Check `BepInEx/LogOutput.log` for a Silksong Decrypted load entry. Confirm the ZIP's `BepInEx` folder was merged at the game root and check the log for missing dependencies or duplicate plugins.
