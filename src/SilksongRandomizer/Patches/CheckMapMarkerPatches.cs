@@ -1,3 +1,4 @@
+using Archipelago.MultiClient.Net.Enums;
 using HarmonyLib;
 using System;
 using System.Collections;
@@ -96,6 +97,12 @@ namespace SilksongRandomizer.Patches
             new Dictionary<string, List<MarkerRecord>>(
                 StringComparer.OrdinalIgnoreCase
             );
+        private const float BlockedMarkerScale = 0.68f;
+        private static readonly Color BlockedMarkerColor = new Color(0.55f, 0.55f, 0.55f, 0.75f);
+        private static readonly Color ProgressionItemColor = new Color(0.69f, 0.6f, 0.94f);
+        private static readonly Color UsefulItemColor = new Color(0.43f, 0.55f, 0.91f);
+        private static readonly Color TrapItemColor = new Color(0.98f, 0.5f, 0.45f);
+        private static readonly Color FillerItemColor = new Color(0.4f, 0.9f, 0.9f);
         private static readonly Dictionary<string, MapCheckReachability>
             ReachabilityByLocation =
             new Dictionary<string, MapCheckReachability>(
@@ -238,7 +245,6 @@ namespace SilksongRandomizer.Patches
             if (marker.Renderer != null && sprite != null)
             {
                 marker.Renderer.sprite = sprite;
-                SetMarkerWorldScale(marker.Renderer.transform, map, sprite);
                 bool allUnreachable =
                     RandomizerPlugin.Instance?.ShowMapMarkerLogic == true &&
                     RandomizerPlugin.Instance.MapMarkerFilter != "Checked" &&
@@ -251,8 +257,11 @@ namespace SilksongRandomizer.Patches
                         reachability ==
                             MapCheckReachability.Unreachable
                     );
-                float alpha = allUnreachable ? 0.48f : 1f;
-                marker.Renderer.color = new Color(1f, 1f, 1f, alpha);
+                // Like the Hollow Knight map mods: reachable checks stay full
+                // size and colour, blocked checks shrink and turn grey.
+                SetMarkerWorldScale(marker.Renderer.transform, map, sprite,
+                    allUnreachable ? BlockedMarkerScale : 1f);
+                marker.Renderer.color = allUnreachable ? BlockedMarkerColor : Color.white;
             }
 
             bool hinted = activeLocationNames.Any(locationName =>
@@ -1373,7 +1382,15 @@ namespace SilksongRandomizer.Patches
             string locationName
         )
         {
-            return state?.receivedHints?.Any(hint =>
+            return GetCachedHint(state, locationName) != null;
+        }
+
+        private static SaveState.HintData GetCachedHint(
+            SaveState state,
+            string locationName
+        )
+        {
+            return state?.receivedHints?.FirstOrDefault(hint =>
                     hint != null &&
                     string.Equals(
                         LocationSet.GetCanonicalLocationName(
@@ -1382,7 +1399,38 @@ namespace SilksongRandomizer.Patches
                         locationName,
                         StringComparison.OrdinalIgnoreCase
                     )
-                ) == true;
+                );
+        }
+
+        // Hinted item lines for the focused marker, cached per received hint so
+        // icon and disguise lookups do not run every frame.
+        private static readonly Dictionary<SaveState.HintData, LogicTooltipLine> HintedItemLines =
+            new Dictionary<SaveState.HintData, LogicTooltipLine>();
+        private static SaveState hintedItemLinesOwner;
+
+        private static LogicTooltipLine GetHintedItemLine(SaveState state, string locationName)
+        {
+            SaveState.HintData hint = GetCachedHint(state, locationName);
+            if (hint == null) return null;
+            if (!ReferenceEquals(hintedItemLinesOwner, state))
+            {
+                HintedItemLines.Clear();
+                hintedItemLinesOwner = state;
+            }
+            if (HintedItemLines.TryGetValue(hint, out LogicTooltipLine cached)) return cached;
+            ItemPreview.Presentation item = ItemPreview.FromHint(locationName, hint);
+            LogicTooltipLine line = item == null ? null : new LogicTooltipLine(
+                "Item: " + item.Name, ItemClassificationColor(item.DisplayFlags));
+            HintedItemLines[hint] = line;
+            return line;
+        }
+
+        private static Color ItemClassificationColor(ItemFlags flags)
+        {
+            if ((flags & ItemFlags.Advancement) != 0) return ProgressionItemColor;
+            if ((flags & ItemFlags.Trap) != 0) return TrapItemColor;
+            if ((flags & ItemFlags.NeverExclude) != 0) return UsefulItemColor;
+            return FillerItemColor;
         }
 
         internal static void IncludeVisibleMarkersInPanBounds(GameMap map)
@@ -1507,6 +1555,7 @@ namespace SilksongRandomizer.Patches
                 Screen.height * 0.5f
             );
             DrawMapCrosshair(drawPointer);
+            DrawMapLegend();
             if (!TryArmTooltip(map))
             {
                 SetHoveredMarker(null);
@@ -1555,6 +1604,11 @@ namespace SilksongRandomizer.Patches
                 {
                     lines.Add(new LogicTooltipLine("Checked", Color.white));
                     continue;
+                }
+                LogicTooltipLine hintedItem = GetHintedItemLine(state, locationName);
+                if (hintedItem != null)
+                {
+                    lines.Add(hintedItem);
                 }
                 if (!showLogic)
                 {
@@ -1644,6 +1698,61 @@ namespace SilksongRandomizer.Patches
             }
         }
 
+        private static void DrawMapLegend()
+        {
+            RandomizerPlugin plugin = RandomizerPlugin.Instance;
+            if (plugin == null || !plugin.ShowMapLegend) return;
+            Color dim = new Color(0.8f, 0.8f, 0.8f, 1f);
+            Color grey = new Color(0.62f, 0.62f, 0.62f, 1f);
+            // Two short rows in the strip below the map frame, clear of the
+            // frame ornaments and the game's own button prompts.
+            List<List<LogicTooltipLine>> rows = new List<List<LogicTooltipLine>>();
+            if (plugin.ShowMapMarkerLogic)
+            {
+                rows.Add(new List<LogicTooltipLine>
+                {
+                    new LogicTooltipLine("Full size: reachable", Color.white),
+                    new LogicTooltipLine("Small and grey: blocked for now", grey),
+                    new LogicTooltipLine("? marker: logic not verified", dim),
+                });
+            }
+            rows.Add(new List<LogicTooltipLine>
+            {
+                new LogicTooltipLine("White outline: item known (shop or hint)", Color.white),
+                new LogicTooltipLine(plugin.ShowMapMarkerLogic
+                    ? "F6: hide requirements" : "F6: show reachable checks", dim),
+            });
+
+            GUIStyle labelStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = Math.Max(10, plugin.MapMarkerTooltipFontSize - 2),
+                wordWrap = false,
+            };
+            const float gap = 26f;
+            float lineHeight = Math.Max(16f, labelStyle.CalcHeight(new GUIContent("Ag"), 400f));
+            float[] rowWidths = rows.Select(row => row.Sum(part =>
+                labelStyle.CalcSize(new GUIContent(part.Text)).x) + gap * (row.Count - 1)).ToArray();
+            float width = rowWidths.Max() + 24f;
+            float height = lineHeight * rows.Count + 8f;
+            Rect rect = new Rect((Screen.width - width) * 0.5f, Screen.height - height - 4f, width, height);
+            Color previous = GUI.color;
+            GUI.color = new Color(0f, 0f, 0f, 0.78f);
+            GUI.DrawTexture(rect, Texture2D.whiteTexture);
+            GUI.color = previous;
+            for (int rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+            {
+                float x = (Screen.width - rowWidths[rowIndex]) * 0.5f;
+                float y = rect.y + 4f + rowIndex * lineHeight;
+                foreach (LogicTooltipLine part in rows[rowIndex])
+                {
+                    float partWidth = labelStyle.CalcSize(new GUIContent(part.Text)).x;
+                    labelStyle.normal.textColor = part.Color;
+                    GUI.Label(new Rect(x, y, partWidth + 2f, lineHeight), part.Text, labelStyle);
+                    x += partWidth + gap;
+                }
+            }
+        }
+
         private static void DrawMapCrosshair(Vector2 pointer)
         {
             float x = Mathf.Round(pointer.x);
@@ -1725,7 +1834,8 @@ namespace SilksongRandomizer.Patches
         private static void SetMarkerWorldScale(
             Transform marker,
             GameMap map,
-            Sprite sprite
+            Sprite sprite,
+            float sizeFactor = 1f
         )
         {
             if (marker == null || map == null || sprite == null ||
@@ -1734,7 +1844,7 @@ namespace SilksongRandomizer.Patches
                 return;
             }
 
-            const float targetMapSize = 0.42f;
+            float targetMapSize = 0.42f * sizeFactor;
             float spriteSize = Math.Max(
                 sprite.bounds.size.x,
                 sprite.bounds.size.y

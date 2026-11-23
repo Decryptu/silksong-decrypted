@@ -1,10 +1,10 @@
 const KEY = "silksong-decrypted-setup-v2";
-const DOWNLOAD = "https://github.com/Decryptu/silksong-decrypted/releases/download/v0.5.5-rc.3";
+const DOWNLOAD = "https://github.com/Decryptu/silksong-decrypted/releases/download/v0.5.5-rc.4";
 
 const STEPS = {
   manual: [
     ["mn-bep", "Install BepInEx 5 (Windows x64)", `Extract Windows x64 <a href="https://github.com/BepInEx/BepInEx/releases">BepInEx 5</a> (5.4.23.x, not BepInEx 6) next to <code>Hollow Knight Silksong.exe</code>. Launch Silksong once, then close it.`],
-    ["mn-plugin", "Add the Silksong Decrypted plugin", `Extract <a href="${DOWNLOAD}/SilksongDecrypted-0.5.5-rc.3.zip">SilksongDecrypted-0.5.5-rc.3.zip</a> into the game folder and confirm <code>BepInEx/plugins/SilksongDecrypted/SilksongRandomizer.dll</code> exists. Remove any other Silksong randomizer plugin first, including one installed by Cogfly or r2modman (their profile codes install the upstream mod, not Silksong Decrypted).`]
+    ["mn-plugin", "Add the Silksong Decrypted plugin", `Extract <a href="${DOWNLOAD}/SilksongDecrypted-0.5.5-rc.4.zip">SilksongDecrypted-0.5.5-rc.4.zip</a> into the game folder and confirm <code>BepInEx/plugins/SilksongDecrypted/SilksongRandomizer.dll</code> exists. Remove any other Silksong randomizer plugin first, including one installed by Cogfly or r2modman (their profile codes install the upstream mod, not Silksong Decrypted).`]
   ],
   host: [
     ["ap-launcher", "Install Archipelago", `Get the <a href="https://github.com/ArchipelagoMW/Archipelago/releases/latest">Archipelago launcher</a> (0.6.8 or newer; older versions cannot load the Silksong world).`],
@@ -14,7 +14,7 @@ const STEPS = {
   ],
   join: [
     ["j-connect", "Connect in game", "Launch Silksong, open the <b>F3</b> panel, and enter the room host, port, assigned slot name, and password if required. Connect and start a new randomizer save in an empty slot."],
-    ["j-stuck", "Know the in-game shortcuts", "<b>F3</b> connection, hints &amp; reports · <b>F4</b> warp to a hub if stuck · <b>F6</b> map reachability logic · <b>F9</b> recent items · In Act 3, rest on your Bellhome bed and hold Dash + press Needolin to revisit Act 2."]
+    ["j-stuck", "Know the in-game shortcuts", "<b>F3</b> connection, hints &amp; reports · <b>F4</b> warp to a hub if stuck · <b>F6</b> show or hide which map checks you can reach · <b>F9</b> recent items · In Act 3, rest on your Bellhome bed and hold Dash + press Needolin to revisit Act 2."]
   ],
   report: [
     ["j-report", "Share your playtest report", "When you finish your run or hit a bug, open <b>F3 → Playtest → Save Playtest Report</b>, click <b>Open Reports Folder</b>, and share the ZIP file (session logs are also auto-saved under <code>BepInEx/SilksongDecrypted/logs</code>)."]

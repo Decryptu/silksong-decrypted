@@ -31,7 +31,7 @@ namespace SilksongRandomizer
         public const string PluginGuid = "moriko.silksong.randomizer";
         public const string PluginName = "Silksong Decrypted";
         public const string PluginVersion = "0.5.5";
-        public const string ReleaseLabel = "0.5.5-rc.3";
+        public const string ReleaseLabel = "0.5.5-rc.4";
 
         public static bool OverrideUnlock { get; set; } = true;
 
@@ -79,6 +79,7 @@ namespace SilksongRandomizer
         private bool mapMarkerSettingsChanged;
         private ConfigEntry<int> mapMarkerTooltipFontSize;
         private ConfigEntry<bool> showMapMarkerLogic;
+        private ConfigEntry<bool> showMapLegend;
         private ConfigEntry<string> mapMarkerFilter;
         private ConfigEntry<bool> recentItemsDisplayEnabled;
         private ConfigEntry<bool> deathLinkEnabled;
@@ -251,7 +252,7 @@ namespace SilksongRandomizer
                                 ? "Show unchecked locations in areas whose maps you own."
                                 : "Show all unchecked locations on your map."));
             locationMapMarkers.SettingChanged += (_, __) => mapMarkerSettingsChanged = true;
-            mapMarkerStyle = Config.Bind("Map Markers", "Marker Style", "Rosary AP",
+            mapMarkerStyle = Config.Bind("Map Markers", "Marker Style", "Category Icons",
                 ModMenuOptions.Describe("Map Markers", "Marker Style",
                     "Choose Rosary AP icons or pins for each location's original category.",
                     new AcceptableValueList<string>("Rosary AP", "Category Icons")));
@@ -270,12 +271,16 @@ namespace SilksongRandomizer
             showMapMarkerLogic = Config.Bind(
                 "Map Markers",
                 "Show Logic (Experimental)",
-                false,
-                ModMenuOptions.Describe("Map Markers", "Show Requirements (Experimental)",
-                    "Show estimated reachability and requirements on map markers. Toggle with F6.")
+                true,
+                ModMenuOptions.Describe("Map Markers", "Show Requirements",
+                    "Shrink and grey out map markers you cannot reach yet, and list requirements when focusing a marker. Toggle with F6.")
             );
             showMapMarkerLogic.SettingChanged += (_, __) =>
                 CheckMapMarkerManager.RequestCurrentMarkerStateRefresh();
+            showMapLegend = Config.Bind("Map Markers", "Show Map Legend", true,
+                ModMenuOptions.Describe("Map Markers", "Map Legend",
+                    "Show a short key explaining marker size, colour and outlines while the map is open."));
+            MigrateMapMarkerDefaults();
             mapMarkerFilter = Config.Bind("Map Markers", "Check Filter", "Unchecked",
                 ModMenuOptions.Describe("Map Markers", "Check Filter",
                     "Filter map pins by check status. Reachability filters apply while F6 logic is enabled.",
@@ -285,6 +290,21 @@ namespace SilksongRandomizer
                 "Recent Items Display", "Enable Recent Items Display", false,
                 ModMenuOptions.Describe("Recent Items Display", "Recent Items Display",
                     "Show your five most recent sent and received items. Toggle with F9."));
+        }
+
+        // BepInEx writes every default to the config file on first launch, so a
+        // changed default never reaches existing players. Apply new map marker
+        // defaults once per config file; later choices in the menu are kept.
+        private void MigrateMapMarkerDefaults()
+        {
+            const int currentDefaults = 1;
+            ConfigEntry<int> appliedDefaults = Config.Bind("Map Markers", "Applied Defaults Version", 0,
+                "Internal. Records which map marker defaults were applied to this config file.");
+            if (appliedDefaults.Value >= currentDefaults) return;
+            mapMarkerStyle.Value = "Category Icons";
+            showMapMarkerLogic.Value = true;
+            appliedDefaults.Value = currentDefaults;
+            Config.Save();
         }
 
         private void LoadDeathLinkSettings()
@@ -336,6 +356,8 @@ namespace SilksongRandomizer
             showMapMarkerLogic == null || showMapMarkerLogic.Value;
 
         internal string MapMarkerFilter => mapMarkerFilter?.Value ?? "Unchecked";
+
+        internal bool ShowMapLegend => showMapLegend == null || showMapLegend.Value;
 
         private void SaveSuccessfulConnectionDetails(
             string host,

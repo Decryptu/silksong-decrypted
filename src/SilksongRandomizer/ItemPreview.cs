@@ -21,6 +21,8 @@ namespace SilksongRandomizer
             internal string Description;
             internal Sprite Icon;
             internal float Scale = 1f;
+            // Classification to show the player. Disguised traps report as progression.
+            internal ItemFlags DisplayFlags;
         }
 
         private sealed class Disguise
@@ -110,6 +112,16 @@ namespace SilksongRandomizer
             return hint == null ? null : Create(location, hint, typo);
         }
 
+        // Presents a hint the player actually received (opened shop, Vog, !hint).
+        // Unlike Get, this never uses silent previews, so the map cannot reveal
+        // shop stock before the player talks to the merchant.
+        internal static Presentation FromHint(string location, SaveState.HintData hint)
+        {
+            if (hint == null || string.IsNullOrWhiteSpace(location) || string.IsNullOrWhiteSpace(hint.item))
+                return null;
+            return Create(LocationSet.GetCanonicalLocationName(location), hint, false);
+        }
+
         private static void Synchronize(SaveState state)
         {
             if (ReferenceEquals(owner, state) && ReferenceEquals(client, Archipelago.Instance) &&
@@ -147,7 +159,11 @@ namespace SilksongRandomizer
             }
             if (string.IsNullOrEmpty(description))
                 description = displayName + ".\r\n" + Classification(hint.flags);
-            return new Presentation { Name = displayName, Description = description, Icon = icon, Scale = scale };
+            return new Presentation
+            {
+                Name = displayName, Description = description, Icon = icon, Scale = scale,
+                DisplayFlags = trap ? ItemFlags.Advancement : hint.flags,
+            };
         }
 
         internal static string CrestName(string location, string item, ItemFlags flags)

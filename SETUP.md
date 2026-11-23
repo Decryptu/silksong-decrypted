@@ -1,11 +1,11 @@
 # Set up Silksong Decrypted
 
-Use the plugin ZIP and `silksong.apworld` from the same Silksong Decrypted build. The Windows release candidate was tested with Silksong 1.0.30000, BepInEx 5.4.23.3, and Archipelago 0.6.8. [Download v0.5.5-rc.3](https://github.com/Decryptu/silksong-decrypted/releases/tag/v0.5.5-rc.3)
+Use the plugin ZIP and `silksong.apworld` from the same Silksong Decrypted build. The Windows release candidate was tested with Silksong 1.0.30000, BepInEx 5.4.23.3, and Archipelago 0.6.8. [Download v0.5.5-rc.4](https://github.com/Decryptu/silksong-decrypted/releases/tag/v0.5.5-rc.4)
 
 ## Install the plugin on Windows
 
 1. With Silksong closed, install a Windows x64 BepInEx 5 build (5.4.23.x, not BepInEx 6) in the folder containing `Hollow Knight Silksong.exe`. Launch Silksong once and close it so BepInEx can initialize its folders.
-2. Extract `SilksongDecrypted-0.5.5-rc.3.zip` into the game folder. Confirm that `BepInEx/plugins/SilksongDecrypted/` contains `SilksongRandomizer.dll`, `Archipelago.MultiClient.Net.dll`, `Newtonsoft.Json.dll`, and the `CheckIcons/` folder.
+2. Extract `SilksongDecrypted-0.5.5-rc.4.zip` into the game folder. Confirm that `BepInEx/plugins/SilksongDecrypted/` contains `SilksongRandomizer.dll`, `Archipelago.MultiClient.Net.dll`, `Newtonsoft.Json.dll`, and the `CheckIcons/` folder.
 3. If you already use a Silksong randomizer, move its plugin folder out of `BepInEx/plugins` before launching. Use one randomizer plugin per profile.
 4. Launch Silksong. The Archipelago connection panel should appear. Press **F3** to reopen it.
 
@@ -35,6 +35,15 @@ Only the host generates the seed. Players who join someone else's room only send
 1. In the F3 panel, enter the host and port in their separate fields. Enter your assigned slot name and any room password, then select **Connect**.
 2. Start a new randomizer save in an empty slot. Keep this save paired with the same room and slot. The opening Crest is an early check you can use to confirm that the server sees your progress.
 3. To resume, use the game's **Save and Quit** menu, reconnect to the same room if needed, and select the same in-game save.
+
+## Read the map
+
+Unchecked locations appear as pins on your map, drawn with the icon of the location's original category (Fleas, Mask Shards, merchants, and so on). On the full map from the inventory:
+
+- **Full-size pins** are reachable with the items you have. **Small grey pins** are blocked for now. Press **F6** to turn this off and show every pin at full size.
+- Move the map so a pin sits under the centre crosshair to see its location name, whether you can reach it, and what it still requires.
+- A **white outline** means you know the item there. After you talk to a merchant, or receive a hint, the pin lists each item and who it is for, coloured purple for progression, blue for useful, and cyan for filler.
+- A short key at the bottom of the full map explains these. Turn it off with **Map Legend** in the mod options.
 
 ## Return to Act 2 from Act 3
 

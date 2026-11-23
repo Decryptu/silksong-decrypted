@@ -18,10 +18,10 @@ Most of the map work exists but is hidden behind defaults (`src/SilksongRandomiz
 
 | Feature | Where | Current default |
 | --- | --- | --- |
-| Category pins (44 icons in `Assets/MapPins/`, picked by the location's original category) | `CategoryMapIcons.cs`, config `Map Markers / Marker Style` | `Rosary AP` (single icon for everything) |
-| Reachability (Reachable / Blocked / Unknown, requirements in the pin tooltip) | `MapLogicEvaluator.cs`, `Patches/CheckMapMarkerPatches.cs`, config `Show Logic (Experimental)`, F6 | Off. Blocked pins only drop to 48% opacity |
+| Category pins (44 icons in `Assets/MapPins/`, picked by the location's original category) | `CategoryMapIcons.cs`, config `Map Markers / Marker Style` | `Rosary AP` until rc.3. Default since rc.4 |
+| Reachability (Reachable / Blocked / Unknown, requirements in the pin tooltip) | `MapLogicEvaluator.cs`, `Patches/CheckMapMarkerPatches.cs`, config `Show Logic (Experimental)`, F6 | Off until rc.3. Since rc.4 on by default, with blocked pins small and grey, and a map key |
 | Check filters (Unchecked, Reachable, Blocked, Unknown, Checked) | config `Map Markers / Check Filter` | `Unchecked` |
-| Hinted checks | white outline on the pin | On |
+| Hinted checks and merchant stock | white outline on the pin; since rc.4 the tooltip lists each known item and recipient | On |
 | Recovery warp to unlocked hubs | `FastTravelUtil.cs`, F4, destination picked in F3 | On |
 | Compatibility shim for homothety's Benchwarp, if a player installs it themselves (soft dependency on `io.github.homothetyhk.benchwarp`) | `OptionalModCompatibility.cs`: start bench follows the randomized start, Slab safety check before warping | Untested in game, undocumented. Replace it with a built-in bench warp. The APWorld FAQ (`APWorld/silksong/docs/setup_en.md`) still has upstream's "no Benchwarp" answer |
 
