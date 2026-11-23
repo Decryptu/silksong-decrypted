@@ -7,12 +7,17 @@
   <title>Silksong Decrypted</title>
   <link rel="icon" href="./assets/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap">
+  <script src="./embers.js" defer></script>
   <script src="./setup.js" defer></script>
 </head>
 <body>
   <svg width="0" height="0" aria-hidden="true" style="position:absolute">
     <defs>
-      <symbol id="pin" viewBox="0 0 24 24"><path d="M12 2 15 12 12 22 9 12Z M3 12h6 M15 12h6" fill="currentColor" stroke="currentColor" stroke-width="1"/></symbol>
+      <symbol id="fleur" viewBox="0 0 32 24"><g fill="currentColor"><path d="M30 12 22 9.2 18 12l4 2.8Z"/><path d="M18 12c-3-4.5-7.5-6-11-3.6-2.4 1.6-1.6 5 .9 5 1.7 0 2.4-1.6 1.5-2.6-.6-.7-1.8-.4-1.8.4.9-2 4.6-2 10.4.8Z"/><path d="M18 12c-3 4.5-7.5 6-11 3.6-.7-.5-1.2-1.1-1.4-1.8 2.6 1.5 6.6.8 12.4-1.8Z" opacity=".7"/><circle cx="3" cy="12" r="1.3"/></g></symbol>
+      <symbol id="rule" viewBox="0 0 240 20"><g fill="none" stroke="currentColor" stroke-width="1"><path d="M0 10h96M144 10h96" opacity=".55"/><path d="M96 10c6-7 14-7 18 0-4 7-12 7-18 0ZM144 10c-6-7-14-7-18 0 4 7 12 7 18 0Z"/></g><path d="M120 3l4 7-4 7-4-7Z" fill="currentColor"/></symbol>
     </defs>
   </svg>
 
@@ -29,20 +34,21 @@
   <main>
     <section class="title-screen">
       <img class="crest" src="./assets/logo.png" alt="" width="640" height="700">
-      <h1>Silksong<span>Decrypted</span></h1>
-      <div class="flourish" aria-hidden="true"><i></i><svg><use href="#pin"/></svg><i></i></div>
+      <h1><small>Silksong</small>Decrypted</h1>
+      <svg class="rule" aria-hidden="true"><use href="#rule"/></svg>
       <p class="lede">Randomize Hollow Knight: Silksong and share items with friends in an Archipelago multiworld.</p>
       <ul class="menu" role="list">
-        <li><a href="#setup"><svg aria-hidden="true"><use href="#pin"/></svg>Start setup</a></li>
-        <li><a href="./yaml.html"><svg aria-hidden="true"><use href="#pin"/></svg>Generate a YAML</a></li>
-        <li><a href="https://github.com/Decryptu/silksong-decrypted/releases/tag/v0.5.5-rc.2"><svg aria-hidden="true"><use href="#pin"/></svg>Download v0.5.5-rc.2 (Windows)</a></li>
-        <li><a href="https://github.com/Decryptu/silksong-decrypted/blob/main/ROADMAP.md"><svg aria-hidden="true"><use href="#pin"/></svg>Roadmap</a></li>
+        <li><a href="#setup"><svg class="cur" aria-hidden="true"><use href="#fleur"/></svg><span>Start setup</span><svg class="cur r" aria-hidden="true"><use href="#fleur"/></svg></a></li>
+        <li><a href="./yaml.html"><svg class="cur" aria-hidden="true"><use href="#fleur"/></svg><span>Generate a YAML</span><svg class="cur r" aria-hidden="true"><use href="#fleur"/></svg></a></li>
+        <li><a href="https://github.com/Decryptu/silksong-decrypted/releases/tag/v0.5.5-rc.2"><svg class="cur" aria-hidden="true"><use href="#fleur"/></svg><span>Download v0.5.5-rc.2 (Windows)</span><svg class="cur r" aria-hidden="true"><use href="#fleur"/></svg></a></li>
+        <li><a href="https://github.com/Decryptu/silksong-decrypted/blob/main/ROADMAP.md"><svg class="cur" aria-hidden="true"><use href="#fleur"/></svg><span>Roadmap</span><svg class="cur r" aria-hidden="true"><use href="#fleur"/></svg></a></li>
       </ul>
     </section>
 
     <section id="setup" class="panel" aria-labelledby="setup-h">
       <header class="panel-head">
         <h2 id="setup-h">Setup</h2>
+        <svg class="rule small" aria-hidden="true"><use href="#rule"/></svg>
         <p>Answer two questions, then tick each step. Progress stays in this browser.</p>
         <div class="progress" aria-live="polite"><div class="track"><div class="fill" id="fill"></div></div><span id="count">0 / 0</span></div>
       </header>
@@ -67,11 +73,12 @@
 
     <section id="status" class="panel" aria-labelledby="status-h">
       <h2 id="status-h">Status</h2>
+      <svg class="rule small" aria-hidden="true"><use href="#rule"/></svg>
       <p>Playtest prerelease <code>v0.5.5-rc.2</code> is live (tested with Silksong 1.0.30000, BepInEx 5.4.23.3, and Archipelago 0.6.8). Built on BatAtVideoGames' randomizer. Use <strong>F3 → Playtest → Save Playtest Report</strong> to share logs after your run.</p>
       <ul class="menu small" role="list">
-        <li><a href="https://github.com/Decryptu/silksong-decrypted/blob/main/SETUP.md"><svg aria-hidden="true"><use href="#pin"/></svg>Player setup guide</a></li>
-        <li><a href="https://github.com/Decryptu/silksong-decrypted/issues"><svg aria-hidden="true"><use href="#pin"/></svg>Report a bug</a></li>
-        <li><a href="https://discord.gg/archipelago"><svg aria-hidden="true"><use href="#pin"/></svg>Get help on Discord</a></li>
+        <li><a href="https://github.com/Decryptu/silksong-decrypted/blob/main/SETUP.md"><svg class="cur" aria-hidden="true"><use href="#fleur"/></svg><span>Player setup guide</span><svg class="cur r" aria-hidden="true"><use href="#fleur"/></svg></a></li>
+        <li><a href="https://github.com/Decryptu/silksong-decrypted/issues"><svg class="cur" aria-hidden="true"><use href="#fleur"/></svg><span>Report a bug</span><svg class="cur r" aria-hidden="true"><use href="#fleur"/></svg></a></li>
+        <li><a href="https://discord.gg/archipelago"><svg class="cur" aria-hidden="true"><use href="#fleur"/></svg><span>Get help on Discord</span><svg class="cur r" aria-hidden="true"><use href="#fleur"/></svg></a></li>
       </ul>
     </section>
   </main>
