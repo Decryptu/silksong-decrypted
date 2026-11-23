@@ -1,11 +1,11 @@
 # Set up Silksong Decrypted
 
-Use the plugin ZIP and `silksong.apworld` from the same Silksong Decrypted build. The Windows release candidate was tested with Silksong 1.0.30000, BepInEx 5.4.23.3, and Archipelago 0.6.8. [Download the Windows prerelease](https://github.com/Decryptu/silksong-decrypted/releases/tag/v0.5.5-rc.1)
+Use the plugin ZIP and `silksong.apworld` from the same Silksong Decrypted build. The Windows release candidate was tested with Silksong 1.0.30000, BepInEx 5.4.23.3, and Archipelago 0.6.8. [Download v0.5.5-rc.2](https://github.com/Decryptu/silksong-decrypted/releases/tag/v0.5.5-rc.2)
 
 ## Install the plugin on Windows
 
-1. With Silksong closed, install a Windows x64 BepInEx 5 build in the folder containing `Hollow Knight Silksong.exe`. Launch Silksong once and close it so BepInEx can initialize its folders.
-2. Extract the candidate ZIP into the game folder. Confirm that `BepInEx/plugins/SilksongDecrypted/` contains `SilksongRandomizer.dll`, `Archipelago.MultiClient.Net.dll`, and `Newtonsoft.Json.dll`.
+1. With Silksong closed, install a Windows x64 BepInEx 5 build (5.4.23.x, not BepInEx 6) in the folder containing `Hollow Knight Silksong.exe`. Launch Silksong once and close it so BepInEx can initialize its folders.
+2. Extract `SilksongDecrypted-0.5.5-rc.2.zip` into the game folder. Confirm that `BepInEx/plugins/SilksongDecrypted/` contains `SilksongRandomizer.dll`, `Archipelago.MultiClient.Net.dll`, `Newtonsoft.Json.dll`, and the `CheckIcons/` folder.
 3. If you already use a Silksong randomizer, move its plugin folder out of `BepInEx/plugins` before launching. Use one randomizer plugin per profile.
 4. Launch Silksong. The Archipelago connection panel should appear. Press **F3** to reopen it.
 
@@ -38,6 +38,20 @@ If you entered Act 3 and still need checks that are only available in Act 2, you
 3. While resting on the bed, **hold Dash** (Swift Step) and **press Needolin**. The trigger follows your current Dash and Needolin bindings, works without Silk, and does not require cancelling the bench first.
 4. Confirm **Yes** on the prompt (`Return Pharloom to its late Act 2 state? Your Act 3 progress will be preserved.`). The game saves automatically and reloads the Bellhome in the late Act 2 world phase while keeping your Act 3 progress. Selecting **No** leaves you resting on the bed without changing the world phase.
 5. To return to Act 3 later, rest on the Bellhome bed again, **hold Dash** and **press Needolin**, and confirm **Yes** (`Restore the Black Thread world and return to Act 3? Your Act 3 progress will be preserved.`).
+
+## Share playtest logs and reports
+
+Silksong Decrypted automatically writes a per-launch session log under `BepInEx/SilksongDecrypted/logs/` (keeping the 10 most recent sessions) so logs are preserved even after restarting the game.
+
+To share your playtest session or report a bug:
+
+1. Press **F3** in game and switch to the **Playtest** tab.
+2. Optionally type a short note describing what happened (bug, softlock, out-of-logic check, or playtest summary).
+3. Click **Save Playtest Report**. This writes a timestamped ZIP archive under `SilksongDecryptedReports/` in your Silksong game folder containing:
+   - `summary.txt` (version, loaded plugins, room seed/options, current scene/coordinates, Act 3 phase, inventory/abilities, checked locations, received items, hints, and explored entrances — never your room password)
+   - `session.log` (timeline of checks, items, scenes, warps, and errors from this launch)
+   - `LogOutput.log` (your current BepInEx log)
+4. Click **Open Reports Folder** and attach the ZIP file to your GitHub issue or send it to the organizer.
 
 ## Troubleshoot
 

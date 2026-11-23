@@ -10,6 +10,8 @@ body:
       label: Version
       description: What version of the randomizer are you using?
       options:
+        - v0.5.5-rc.2
+        - v0.5.5-rc.1
         - v0.5.5
         - v0.5.4
         - v0.5.3
@@ -49,8 +51,8 @@ body:
   - type: upload
     id: screenshots
     attributes:
-      label: Screenshots
-      description: If applicable, add screenshots to help explain your problem.
+      label: Playtest Report ZIP / Screenshots
+      description: Open F3 -> Playtest -> Save Playtest Report and attach the ZIP from SilksongDecryptedReports/, plus any screenshots that help explain the issue.
     validations:
       required: false
 

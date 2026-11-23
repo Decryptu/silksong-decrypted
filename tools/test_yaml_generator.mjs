@@ -193,4 +193,18 @@ test("yaml.html contains every DOM ID referenced by yaml-ui.js and valid local a
       );
     }
   }
+
+  const indexHtml = fs.readFileSync(path.join(ROOT, "site", "index.html"), "utf8");
+  const setupJs = fs.readFileSync(path.join(ROOT, "site", "setup.js"), "utf8");
+  const tagMatch = indexHtml.match(/releases\/tag\/(v[\w.-]+)/);
+  assert.ok(tagMatch, "site/index.html should link to a release tag");
+  const tag = tagMatch[1];
+  assert.ok(
+    setupJs.includes(`releases/download/${tag}`),
+    `site/setup.js DOWNLOAD URL should match site/index.html tag ${tag}`
+  );
+  assert.ok(
+    setupJs.includes(`SilksongDecrypted-${tag.replace(/^v/, "")}.zip`),
+    `site/setup.js plugin ZIP filename should match ${tag}`
+  );
 });

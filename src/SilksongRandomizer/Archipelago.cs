@@ -22,7 +22,7 @@ namespace SilksongRandomizer
     public sealed class Archipelago
     {
         internal const string VersionHelpUrl =
-            "https://github.com/Batatvideogames/silksong-archipelago-randomizer#i-got-an-error-saying-my-apworld-version-is-incompatible";
+            "https://github.com/Decryptu/silksong-decrypted/blob/main/SETUP.md#troubleshoot";
         internal const string VersionHelpSuffix =
             " More help can be found in the FAQ: " + VersionHelpUrl;
         public const string GoalLocationName = "Goal";
@@ -3029,14 +3029,14 @@ namespace SilksongRandomizer
             if (string.IsNullOrWhiteSpace(worldVersion))
             {
                 return "This seed does not report its APWorld version, so it cannot be checked against " +
-                       "Silksong Randomizer " + RandomizerPlugin.PluginVersion +
+                       "Silksong Decrypted " + RandomizerPlugin.PluginVersion +
                        ". Ask the host which version was used to generate this seed." + VersionHelpSuffix;
             }
 
             return "This seed was generated with APWorld " + worldVersion +
-                   ", but you have Silksong Randomizer " + RandomizerPlugin.PluginVersion +
-                   " installed. This run can only be continued on Silksong Randomizer version " +
-                   worldVersion + ". Either downgrade your mod or update your APWorld and generate a new seed." + VersionHelpSuffix;
+                   ", but you have Silksong Decrypted " + RandomizerPlugin.PluginVersion +
+                   " installed. This run can only be continued on version " +
+                   worldVersion + ". Install the matching plugin and APWorld from the same release." + VersionHelpSuffix;
         }
 
         private static bool IsDeterministicLoginFailure(

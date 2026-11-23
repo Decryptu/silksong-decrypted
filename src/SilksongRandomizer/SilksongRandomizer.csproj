@@ -5,7 +5,7 @@
     <Version>0.5.5</Version>
     <AssemblyVersion>0.5.5.0</AssemblyVersion>
     <FileVersion>0.5.5.0</FileVersion>
-    <InformationalVersion>0.5.5</InformationalVersion>
+    <InformationalVersion>0.5.5-rc.2</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
     <DebugSymbols Condition="'$(Configuration)' == 'Release'">false</DebugSymbols>
@@ -134,6 +134,8 @@
   </Target>
 
   <ItemGroup>
+    <EmbeddedResource Include="Assets/CheckIcons/*.png" LogicalName="SilksongRandomizer.CheckIcons.%(Filename)%(Extension)" />
+    <None Update="Assets/CheckIcons/*.png" CopyToOutputDirectory="PreserveNewest" TargetPath="CheckIcons/%(Filename)%(Extension)" />
     <EmbeddedResource Include="Assets/MapPins/*.png" LogicalName="SilksongRandomizer.MapPins.%(Filename)%(Extension)" />
     <EmbeddedResource Include="Assets/MultiworldIcons.zip" LogicalName="SilksongRandomizer.MultiworldIcons.zip" />
     <None Update="Assets/MultiworldIcons.LICENSE.txt" CopyToOutputDirectory="PreserveNewest" TargetPath="MultiworldIcons.LICENSE.txt" />

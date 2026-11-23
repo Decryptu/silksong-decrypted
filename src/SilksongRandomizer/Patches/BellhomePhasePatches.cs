@@ -338,13 +338,15 @@ namespace SilksongRandomizer.Patches
                 yield break;
             }
 
+            string phaseDescription = targetBlackThreadWorld
+                ? "Act 3 Black Thread"
+                : "late Act 2";
             RandomizerPlugin.Log?.LogInfo(
                 "[RANDOMIZER] Bellhome shifted Pharloom to the " +
-                (targetBlackThreadWorld
-                    ? "Act 3 Black Thread"
-                    : "late Act 2") +
+                phaseDescription +
                 " world phase."
             );
+            PlaytestDiagnostics.RecordEvent("PHASE", "Bellhome shifted Pharloom to " + phaseDescription);
 
             phaseChangeInProgress = false;
             gameManager.ChangeToScene(

@@ -31,6 +31,7 @@ namespace SilksongRandomizer
         public const string PluginGuid = "moriko.silksong.randomizer";
         public const string PluginName = "Silksong Decrypted";
         public const string PluginVersion = "0.5.5";
+        public const string ReleaseLabel = "0.5.5-rc.2";
 
         public static bool OverrideUnlock { get; set; } = true;
 
@@ -54,6 +55,7 @@ namespace SilksongRandomizer
         {
             Connection,
             Hints,
+            Playtest,
         }
 
         private bool showConnectionGui;
@@ -87,6 +89,9 @@ namespace SilksongRandomizer
         private ArchipelagoWindowTab selectedWindowTab =
             ArchipelagoWindowTab.Connection;
         private Vector2 hintsScrollPosition;
+        private Vector2 playtestScrollPosition;
+        private string playtestNote = string.Empty;
+        private string playtestReportStatus = string.Empty;
         private volatile bool reopenConnectionGuiRequested;
         private volatile bool resetTransientEffectsRequested;
         private volatile bool saveAfterDisconnectRequested;
@@ -176,6 +181,7 @@ namespace SilksongRandomizer
             LoadDeathLinkSettings();
             RouteLocationOverlay.Initialize(Config);
             SaveFolderManager.Initialize(Config);
+            PlaytestDiagnostics.Initialize();
             DeathLinkManager.Initialize(QueueConnectionStatus);
             SilkLinkManager.Initialize(QueueConnectionStatus);
             CurrencyLinkManager.Initialize(QueueConnectionStatus);
@@ -189,7 +195,7 @@ namespace SilksongRandomizer
                 PatchAssemblySafely(h);
                 StartCoroutine(PatchLocalizationWhenReady(h));
                 OptionalModCompatibility.Initialize(h);
-                Log.LogInfo($"{PluginName} {PluginVersion} loaded.");
+                Log.LogInfo($"{PluginName} {PluginVersion} ({ReleaseLabel}) loaded.");
                 Log.LogInfo($"[RANDOMIZER] Game {Application.version}; Unity {Application.unityVersion}; platform {Application.platform}.");
                 DumpPatchState(h);
             }
@@ -500,18 +506,39 @@ namespace SilksongRandomizer
         {
             string relativePath = Path.Combine("CheckIcons", fileName);
             string path = GetPluginAssetPath(relativePath);
-            if (!File.Exists(path))
-            {
-                Log.LogWarning(
-                    "[RANDOMIZER] " + relativePath +
-                    " not found; using the generic AP icon."
-                );
-                return fallback;
-            }
+            byte[] data = null;
 
             try
             {
-                byte[] data = File.ReadAllBytes(path);
+                if (File.Exists(path))
+                {
+                    data = File.ReadAllBytes(path);
+                }
+                else
+                {
+                    string resourceName = "SilksongRandomizer.CheckIcons." + fileName;
+                    using (Stream stream = typeof(RandomizerPlugin).Assembly.GetManifestResourceStream(resourceName))
+                    {
+                        if (stream != null)
+                        {
+                            using (MemoryStream buffer = new MemoryStream())
+                            {
+                                stream.CopyTo(buffer);
+                                data = buffer.ToArray();
+                            }
+                        }
+                    }
+                }
+
+                if (data == null || data.Length == 0)
+                {
+                    Log.LogWarning(
+                        "[RANDOMIZER] " + relativePath +
+                        " not found; using the generic AP icon."
+                    );
+                    return fallback;
+                }
+
                 Texture2D texture = new Texture2D(
                     2,
                     2,
@@ -797,6 +824,7 @@ namespace SilksongRandomizer
         {
             UpdateConnectionInput();
             RouteLocationOverlay.Update();
+            PlaytestDiagnostics.Update();
             Archipelago.Instance?.ProcessPendingLinkReset();
             if (resetTransientEffectsRequested)
             {
@@ -901,6 +929,7 @@ namespace SilksongRandomizer
 
         private void OnDisable()
         {
+            PlaytestDiagnostics.RecordEvent("SHUTDOWN", "Plugin unloading.");
             RecentItemsDisplay.Reset();
             connectionShutdownRequested = true;
             SuppressAutomaticReconnect();
@@ -1076,6 +1105,7 @@ namespace SilksongRandomizer
             QueueConnectionStatus(string.IsNullOrWhiteSpace(message) ? "Randomizer error." : message);
             connectionGuiDismissed = false;
             reopenConnectionGuiRequested = true;
+            PlaytestDiagnostics.RecordEvent("ERROR", message);
             Log.LogError("[RANDOMIZER] " + message);
         }
 
@@ -1411,6 +1441,7 @@ namespace SilksongRandomizer
 
                 if (newlyReceived)
                 {
+                    PlaytestDiagnostics.RecordReceivedItem(queuedItem.Index, canonicalItemName);
                     QueueReceivedItemPopup(canonicalItemName, queuedItem.Flags, queuedItem.Receipt);
                 }
 
@@ -1672,6 +1703,10 @@ namespace SilksongRandomizer
                 {
                     DrawHintsTab();
                 }
+                else if (selectedWindowTab == ArchipelagoWindowTab.Playtest)
+                {
+                    DrawPlaytestTab();
+                }
                 else
                 {
                     connectionScrollPosition = GUILayout.BeginScrollView(connectionScrollPosition);
@@ -1713,6 +1748,17 @@ namespace SilksongRandomizer
                 ))
             {
                 selectedWindowTab = ArchipelagoWindowTab.Hints;
+            }
+
+            GUI.enabled =
+                wasEnabled &&
+                selectedWindowTab != ArchipelagoWindowTab.Playtest;
+            if (GUILayout.Button(
+                    AlphabetModeManager.FilterDirectText("Playtest"),
+                    GUILayout.Height(26f)
+                ))
+            {
+                selectedWindowTab = ArchipelagoWindowTab.Playtest;
             }
 
             GUI.enabled = wasEnabled;
@@ -1960,6 +2006,103 @@ namespace SilksongRandomizer
             }
         }
 
+        private void DrawPlaytestTab()
+        {
+            playtestScrollPosition = GUILayout.BeginScrollView(
+                playtestScrollPosition,
+                GUILayout.ExpandHeight(true)
+            );
+
+            GUILayout.Label(
+                AlphabetModeManager.FilterDirectText(
+                    $"{PluginName} {PluginVersion} ({ReleaseLabel})"
+                )
+            );
+            GUILayout.Space(4f);
+            GUILayout.Label(
+                AlphabetModeManager.FilterDirectText(
+                    "Save a single ZIP report with your current room, checked locations, received items, " +
+                    "session log, and BepInEx log so you can share it after a playtest or bug."
+                )
+            );
+            GUILayout.Space(8f);
+
+            SaveState state = SaveState.Instance;
+            string currentScene = GameManager.SilentInstance?.GetSceneNameString() ?? string.Empty;
+            int checkedCount = state?.checkedLocations?.Count ?? 0;
+            int receivedCount = state?.receivedItemHistory?.Count ?? 0;
+            string summaryLine = state == null
+                ? "Save: none loaded"
+                : $"Slot: {state.slotName} | Goal: {state.goal} | Checks: {checkedCount} | Items: {receivedCount}";
+            GUILayout.Label(AlphabetModeManager.FilterDirectText(summaryLine));
+            if (!string.IsNullOrEmpty(currentScene))
+            {
+                string phase = MapLogicEvaluator.IsActThreeActive ? " (Act 3)" : string.Empty;
+                GUILayout.Label(AlphabetModeManager.FilterDirectText("Scene: " + currentScene + phase));
+            }
+            GUILayout.Space(8f);
+
+            GUILayout.Label(
+                AlphabetModeManager.FilterDirectText("Optional note (what happened, bug, or feedback):")
+            );
+            playtestNote = GUILayout.TextArea(
+                playtestNote ?? string.Empty,
+                500,
+                GUILayout.Height(72f)
+            );
+            GUILayout.Space(8f);
+
+            if (!string.IsNullOrEmpty(playtestReportStatus))
+            {
+                GUILayout.Label(AlphabetModeManager.FilterDirectText(playtestReportStatus));
+                GUILayout.Space(6f);
+            }
+
+            GUILayout.Label(
+                AlphabetModeManager.FilterDirectText(
+                    "Session logs are also saved automatically under BepInEx/SilksongDecrypted/logs."
+                )
+            );
+            GUILayout.EndScrollView();
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button(
+                    AlphabetModeManager.FilterDirectText("Save Playtest Report"),
+                    GUILayout.Height(32f)
+                ))
+            {
+                if (PlaytestDiagnostics.ExportReport(playtestNote, out string savedPath, out string exportError))
+                {
+                    playtestReportStatus = "Saved: " + savedPath;
+                }
+                else
+                {
+                    playtestReportStatus = exportError;
+                }
+            }
+
+            if (GUILayout.Button(
+                    AlphabetModeManager.FilterDirectText("Open Reports Folder"),
+                    GUILayout.Height(32f)
+                ))
+            {
+                if (!PlaytestDiagnostics.OpenReportsFolder(out string openError))
+                {
+                    playtestReportStatus = openError;
+                }
+            }
+
+            if (GUILayout.Button(
+                    AlphabetModeManager.FilterDirectText("Close"),
+                    GUILayout.Height(32f)
+                ))
+            {
+                connectionGuiDismissed = true;
+                HideConnectionGui(true);
+            }
+            GUILayout.EndHorizontal();
+        }
+
         private static string SanitizeHintJournalText(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -2029,9 +2172,11 @@ namespace SilksongRandomizer
                 connectionGuiDismissed = true;
                 connectionStatus = string.Empty;
                 HideConnectionGui(true);
+                string hubName = FastTravelUtil.GetPreferredHubName();
+                PlaytestDiagnostics.RecordEvent("WARP", "F4 warp to " + hubName);
                 Log.LogInfo(
                     "[RANDOMIZER] Warping to " +
-                    FastTravelUtil.GetPreferredHubName() + "."
+                    hubName + "."
                 );
             }
             catch (Exception ex)
@@ -2139,6 +2284,7 @@ namespace SilksongRandomizer
             connectionGuiDismissed = false;
             HideConnectionGui(true);
             Archipelago archipelago = GetOrCreateArchipelago();
+            PlaytestDiagnostics.RecordConnection(archipelago, false);
             if (!archipelago.Connected)
             {
                 RequestAutomaticReconnect();
@@ -2219,6 +2365,7 @@ namespace SilksongRandomizer
                     automaticReconnectSuppressed = false;
                     connectionStatus = "Connected.";
                     FinishAutomaticReconnect();
+                    PlaytestDiagnostics.RecordConnection(GetOrCreateArchipelago(), true);
                     Log.LogInfo(
                         "[RANDOMIZER] Reconnected to Archipelago."
                     );

@@ -168,6 +168,9 @@
         num.value = slider.value;
         updateOption(def.key, Number(slider.value), { skipGroupsRebuild: true });
       });
+      slider.addEventListener("change", () => {
+        updateOption(def.key, Number(slider.value));
+      });
       num.addEventListener("change", () => {
         const parsed = Number(num.value);
         if (Number.isFinite(parsed)) {

@@ -2,8 +2,8 @@
 
 An unofficial Archipelago randomizer for Hollow Knight: Silksong. Shuffle progression across Pharloom and exchange items with players in other Archipelago worlds.
 
-- [Project site](https://decryptu.github.io/silksong-decrypted/)
-- [Windows prerelease](https://github.com/Decryptu/silksong-decrypted/releases/tag/v0.5.5-rc.1)
+- [Project site & YAML generator](https://decryptu.github.io/silksong-decrypted/)
+- [Windows prerelease (v0.5.5-rc.2)](https://github.com/Decryptu/silksong-decrypted/releases/tag/v0.5.5-rc.2)
 - [Silksong Decrypted player setup](SETUP.md)
 - [Development setup](DEVELOPMENT.md)
 - [Roadmap](ROADMAP.md)

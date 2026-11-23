@@ -2099,6 +2099,8 @@ namespace SilksongRandomizer
                 goalCompleted = true;
             }
 
+            PlaytestDiagnostics.RecordCheck(canonicalName, goalCompleted);
+
             Archipelago archipelago = Archipelago.Instance;
             if (archipelago != null)
             {
