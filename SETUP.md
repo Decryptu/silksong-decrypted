@@ -1,11 +1,11 @@
 # Set up Silksong Decrypted
 
-Use the plugin ZIP and `silksong.apworld` from the same Silksong Decrypted build. The Windows release candidate was tested with Silksong 1.0.30000, BepInEx 5.4.23.3, and Archipelago 0.6.8. [Download v0.5.5-rc.4](https://github.com/Decryptu/silksong-decrypted/releases/tag/v0.5.5-rc.4)
+Use the plugin ZIP and `silksong.apworld` from the same Silksong Decrypted build. The Windows prerelease targets Silksong 1.0.30000, BepInEx 5.4.23.3, and Archipelago 0.6.8. [Download v0.5.5-rc.5](https://github.com/Decryptu/silksong-decrypted/releases/tag/v0.5.5-rc.5)
 
 ## Install the plugin on Windows
 
 1. With Silksong closed, install a Windows x64 BepInEx 5 build (5.4.23.x, not BepInEx 6) in the folder containing `Hollow Knight Silksong.exe`. Launch Silksong once and close it so BepInEx can initialize its folders.
-2. Extract `SilksongDecrypted-0.5.5-rc.4.zip` into the game folder. Confirm that `BepInEx/plugins/SilksongDecrypted/` contains `SilksongRandomizer.dll`, `Archipelago.MultiClient.Net.dll`, `Newtonsoft.Json.dll`, and the `CheckIcons/` folder.
+2. Extract `SilksongDecrypted-0.5.5-rc.5.zip` into the game folder. Confirm that `BepInEx/plugins/SilksongDecrypted/` contains `SilksongRandomizer.dll`, `Archipelago.MultiClient.Net.dll`, `Newtonsoft.Json.dll`, and the `CheckIcons/` folder.
 3. If you already use a Silksong randomizer, move its plugin folder out of `BepInEx/plugins` before launching. Use one randomizer plugin per profile.
 4. Launch Silksong. The Archipelago connection panel should appear. Press **F3** to reopen it.
 
@@ -64,8 +64,8 @@ To share your playtest session or report a bug:
 1. Press **F3** in game and switch to the **Playtest** tab.
 2. Optionally type a short note describing what happened (bug, softlock, out-of-logic check, or playtest summary).
 3. Click **Save Playtest Report**. This writes a timestamped ZIP archive under `SilksongDecryptedReports/` in your Silksong game folder containing:
-   - `summary.txt` (version, loaded plugins, room seed/options, current scene/coordinates, Act 3 phase, inventory/abilities, checked locations, received items, hints, and explored entrances — never your room password)
-   - `session.log` (timeline of checks, items, scenes, warps, and errors from this launch)
+   - `summary.txt` (version, loaded plugins, room seed/options, current scene/coordinates, Act 3 phase, inventory, native ability flags and randomizer skill ownership, checked locations, received items, hints, and explored entrances — never your room password)
+   - `session.log` (timeline of checks, item receipts, traversal gate results, observed movement actions, room coordinates, boss flags, and warps from this launch)
    - `LogOutput.log` (your current BepInEx log)
 4. Click **Open Reports Folder** and attach the ZIP file to your GitHub issue or send it to the organizer.
 

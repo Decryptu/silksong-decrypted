@@ -31,7 +31,7 @@ namespace SilksongRandomizer
         public const string PluginGuid = "moriko.silksong.randomizer";
         public const string PluginName = "Silksong Decrypted";
         public const string PluginVersion = "0.5.5";
-        public const string ReleaseLabel = "0.5.5-rc.4";
+        public const string ReleaseLabel = "0.5.5-rc.5";
 
         public static bool OverrideUnlock { get; set; } = true;
 
@@ -951,6 +951,7 @@ namespace SilksongRandomizer
 
         private void OnDisable()
         {
+            PlaytestDiagnostics.Stop();
             PlaytestDiagnostics.RecordEvent("SHUTDOWN", "Plugin unloading.");
             RecentItemsDisplay.Reset();
             connectionShutdownRequested = true;
@@ -1463,7 +1464,7 @@ namespace SilksongRandomizer
 
                 if (newlyReceived)
                 {
-                    PlaytestDiagnostics.RecordReceivedItem(queuedItem.Index, canonicalItemName);
+                    PlaytestDiagnostics.RecordReceivedItem(queuedItem.Index, canonicalItemName, saveState, item?.Type == ItemType.Skill);
                     QueueReceivedItemPopup(canonicalItemName, queuedItem.Flags, queuedItem.Receipt);
                 }
 
@@ -2183,6 +2184,7 @@ namespace SilksongRandomizer
                     out string error
                 ))
                 {
+                    PlaytestDiagnostics.RecordEvent("WARP", "F4 blocked: " + error);
                     Log.LogWarning("[RANDOMIZER] " + error);
                     if (showConnectionGui)
                     {
@@ -2205,6 +2207,7 @@ namespace SilksongRandomizer
             {
                 const string message =
                     "F4 warp failed because no transition was started.";
+                PlaytestDiagnostics.RecordEvent("WARP", message);
                 Log.LogWarning("[RANDOMIZER] " + message + " " + ex);
                 if (showConnectionGui)
                 {

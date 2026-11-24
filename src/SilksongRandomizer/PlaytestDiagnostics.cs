@@ -8,6 +8,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using SilksongRandomizer.Patches;
 using UnityEngine;
 
 namespace SilksongRandomizer
@@ -17,6 +18,8 @@ namespace SilksongRandomizer
         private const int MaxSessionLogFiles = 10;
         private const int MaxRecentEvents = 300;
         private const float ScenePollIntervalSeconds = 0.5f;
+        private const float ProgressSampleIntervalSeconds = 30f;
+        private const float TraversalRepeatIntervalSeconds = 5f;
 
         private static readonly object Sync = new object();
         private static readonly Queue<string> RecentEvents = new Queue<string>();
@@ -27,6 +30,11 @@ namespace SilksongRandomizer
         private static string reportsDirectory = string.Empty;
         private static string lastRecordedScene = string.Empty;
         private static float nextScenePollTime;
+        private static float nextProgressSampleTime;
+        private static string lastProgressState;
+        private static readonly HashSet<string> ReportedUnityErrors = new HashSet<string>();
+        private static readonly Dictionary<(string Move, string Outcome, bool Right), float> NextTraversalEvent =
+            new Dictionary<(string, string, bool), float>();
         private static RoomGeometry cachedGeometry;
         private static bool geometryLoadFailed;
 
@@ -74,6 +82,40 @@ namespace SilksongRandomizer
                 $"{RandomizerPlugin.PluginName} {RandomizerPlugin.PluginVersion} ({RandomizerPlugin.ReleaseLabel}) | " +
                 $"Game {Application.version} | Unity {Application.unityVersion} | Platform {Application.platform} | OS {Environment.OSVersion}"
             );
+            Application.logMessageReceived += RecordUnityLifecycleError;
+        }
+
+        internal static void Stop() => Application.logMessageReceived -= RecordUnityLifecycleError;
+
+        private static void RecordUnityLifecycleError(string message, string stack, LogType type)
+        {
+            if (type != LogType.Error && type != LogType.Exception)
+            {
+                return;
+            }
+
+            try
+            {
+                // Capture the first occurrence in a scene. These messages otherwise
+                // often reach the Unity log without their managed caller.
+                if (!message.Contains("while activating or deactivating the parent GameObject") &&
+                    !message.StartsWith("Coroutine couldn't be started", StringComparison.Ordinal) &&
+                    !(type == LogType.Exception && stack.Contains("SilkPossession.Update")))
+                {
+                    return;
+                }
+
+                string scene = SafeCurrentScene();
+                if (ReportedUnityErrors.Add(scene + "|" + message))
+                {
+                    string trace = string.IsNullOrWhiteSpace(stack) ? StackTraceUtility.ExtractStackTrace() : stack;
+                    RecordEvent("UNITY", $"scene={scene} | {message} | {trace}");
+                }
+            }
+            catch
+            {
+                // Keep error reporting independent from gameplay.
+            }
         }
 
         internal static void Update()
@@ -93,14 +135,35 @@ namespace SilksongRandomizer
                 }
 
                 string scene = manager.GetSceneNameString() ?? string.Empty;
-                if (string.IsNullOrWhiteSpace(scene) || string.Equals(scene, lastRecordedScene, StringComparison.Ordinal))
+                if (string.IsNullOrWhiteSpace(scene))
                 {
                     return;
                 }
 
-                lastRecordedScene = scene;
-                bool actThree = MapLogicEvaluator.IsActThreeActive;
-                RecordEvent("SCENE", actThree ? scene + " (Act 3)" : scene);
+                bool sceneChanged = !string.Equals(scene, lastRecordedScene, StringComparison.Ordinal);
+                if (sceneChanged)
+                {
+                    lastRecordedScene = scene;
+                    NextTraversalEvent.Clear();
+                    bool actThree = MapLogicEvaluator.IsActThreeActive;
+                    RecordEvent("SCENE", actThree ? scene + " (Act 3)" : scene);
+                }
+
+                HeroController hero = HeroController.instance;
+                PlayerData data = PlayerData.instance;
+                if (!manager.IsGameplayScene() || hero == null || data == null || SaveState.Instance == null)
+                {
+                    lastProgressState = null;
+                    return;
+                }
+
+                string progress = ProgressState(manager, data);
+                if (sceneChanged || progress != lastProgressState || Time.unscaledTime >= nextProgressSampleTime)
+                {
+                    lastProgressState = progress;
+                    nextProgressSampleTime = Time.unscaledTime + ProgressSampleIntervalSeconds;
+                    RecordEvent("PROGRESS", $"{HeroContext(hero)} | {progress}");
+                }
             }
             catch
             {
@@ -146,7 +209,7 @@ namespace SilksongRandomizer
             }
         }
 
-        internal static void RecordReceivedItem(int index, string itemName)
+        internal static void RecordReceivedItem(int index, string itemName, SaveState state, bool isSkill)
         {
             if (string.IsNullOrWhiteSpace(itemName))
             {
@@ -154,7 +217,102 @@ namespace SilksongRandomizer
             }
 
             RecordEvent("RECEIVE", "#" + index.ToString(CultureInfo.InvariantCulture) + " " + itemName);
+            if (isSkill)
+            {
+                try
+                {
+                    RecordEvent("SKILL", $"After receipt #{index} {itemName} @ {SafeCurrentScene()} | {SkillOwnership(state)}");
+                }
+                catch
+                {
+                    // A diagnostic snapshot must not affect item delivery.
+                }
+            }
         }
+
+        internal static void RecordTraversalGate(HeroController hero, string move, bool allowed)
+        {
+            try
+            {
+                InputHandler input = HeroControllerAbilityPatchUtil.Field<InputHandler>(hero, "inputHandler");
+                if (input == null)
+                {
+                    return;
+                }
+
+                bool pressed = move switch
+                {
+                    "Clawline" => input.inputActions.SuperDash.WasPressed,
+                    "Wall Jump" => input.inputActions.Jump.WasPressed &&
+                        (hero.cState.wallSliding ||
+                         HeroControllerAbilityPatchUtil.Field<bool>(hero, "touchingWallL") ||
+                         HeroControllerAbilityPatchUtil.Field<bool>(hero, "touchingWallR")),
+                    _ => input.inputActions.Dash.WasPressed,
+                };
+                if (pressed)
+                {
+                    RecordTraversal(hero, move, allowed ? "gate allowed" : "gate denied");
+                }
+            }
+            catch
+            {
+                // Diagnostics must never interfere with gameplay.
+            }
+        }
+
+        internal static void RecordTraversal(HeroController hero, string move, string outcome)
+        {
+            try
+            {
+                GameManager manager = GameManager.SilentInstance;
+                SaveState state = SaveState.Instance;
+                if (state == null || hero == null || manager == null || !manager.IsGameplayScene())
+                {
+                    return;
+                }
+
+                string scene = SafeCurrentScene();
+                bool right = move == "Wall Jump" ? DirectionalAbilities.WallRight(hero) :
+                    DirectionalAbilities.InputRight(hero, move == "Clawline");
+                var key = (move, outcome, right);
+                float now = Time.unscaledTime;
+                if (NextTraversalEvent.TryGetValue(key, out float next) && now < next)
+                {
+                    return;
+                }
+
+                NextTraversalEvent[key] = now + TraversalRepeatIntervalSeconds;
+                string sideLabel = move == "Wall Jump" ? "wallSide" : "inputSide";
+                string side = right ? "right" : "left";
+                RecordEvent("TRAVERSAL", $"{move}: {outcome} | {sideLabel}={side} | {HeroContext(hero, scene)} | {SkillOwnership(state)}");
+            }
+            catch
+            {
+                // Diagnostics must never interfere with gameplay.
+            }
+        }
+
+        private static string HeroContext(HeroController hero, string scene = null)
+        {
+            Vector3 pos = hero.transform.position;
+            return FormattableString.Invariant(
+                $"scene={scene ?? SafeCurrentScene()} x={pos.x:0.0} y={pos.y:0.0} controlRelinquished={hero.controlReqlinquished} grounded={hero.cState.onGround} wallSliding={hero.cState.wallSliding}");
+        }
+
+        private static string ProgressState(GameManager manager, PlayerData data) =>
+            $"slot={manager.profileID} gameState={manager.GameState} " +
+            $"transitionBlocked={TransitionPoint.IsTransitionBlocked} bossTransition={BossSceneController.IsTransitioning} " +
+            $"atBench={data.atBench} sisterSplinterDefeated={data.defeatedSplinterQueen} widowDefeated={data.spinnerDefeated}";
+
+        private static string SkillOwnership(SaveState state) =>
+            $"skillsRandomized={state.IsRandomized(ItemType.Skill)} swiftStepLevel={state.swiftStepLevel} " +
+            $"dash={state.canDash} sprint={state.canSprint} wallJump={state.canWallJump} clawline={state.canUseHarpoon} " +
+            $"brolly={state.canBrolly} doubleJump={state.canDoubleJump} needolin={state.canUseNeedolin} " +
+            $"silkSoar={state.canSilkSoar} chargeSlash={state.canChargeSlash} " +
+            $"dashLR={state.canDash && DirectionalAbilities.Dash(state, false)}/{state.canDash && DirectionalAbilities.Dash(state, true)} " +
+            $"sprintLR={state.canSprint && DirectionalAbilities.Sprint(state, false)}/{state.canSprint && DirectionalAbilities.Sprint(state, true)} " +
+            $"wallJumpLR={state.canWallJump && DirectionalAbilities.Cling(state, false)}/{state.canWallJump && DirectionalAbilities.Cling(state, true)} " +
+            $"clawlineLR={state.canUseHarpoon && DirectionalAbilities.Clawline(state, false)}/{state.canUseHarpoon && DirectionalAbilities.Clawline(state, true)}";
 
         internal static void RecordEvent(string category, string message)
         {
@@ -483,10 +641,19 @@ namespace SilksongRandomizer
                         $"rosaries={pd.geo}, shards={pd.ShellShards}, nailUpgrades={pd.nailUpgrades}"
                     );
                     sb.AppendLine(
-                        $"Abilities: dash={pd.hasDash}, walljump={pd.hasWalljump}, brolly={pd.hasBrolly}, " +
+                        $"Native ability flags: dash={pd.hasDash}, walljump={pd.hasWalljump}, brolly={pd.hasBrolly}, " +
                         $"doubleJump={pd.hasDoubleJump}, harpoon={pd.hasHarpoonDash}, needolin={pd.hasNeedolin}, " +
                         $"superJump={pd.hasSuperJump}, chargeSlash={pd.hasChargeSlash}, quill={pd.hasQuill}"
                     );
+                    if (manager != null)
+                    {
+                        sb.AppendLine("Progress state: " + ProgressState(manager, pd));
+                    }
+                }
+
+                if (state != null)
+                {
+                    sb.AppendLine("Randomizer skill state: " + SkillOwnership(state));
                 }
             }
             catch (Exception ex)

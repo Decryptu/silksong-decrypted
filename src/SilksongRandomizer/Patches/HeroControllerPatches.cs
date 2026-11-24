@@ -460,6 +460,12 @@ namespace SilksongRandomizer.Patches
 
                 return false;
             }
+
+            [HarmonyPostfix]
+            private static void Postfix(HeroController __instance, bool __result)
+            {
+                PlaytestDiagnostics.RecordTraversalGate(__instance, "Dash", __result);
+            }
         }
 
         [HarmonyPatch(typeof(HeroController), "CanSprint")]
@@ -480,6 +486,8 @@ namespace SilksongRandomizer.Patches
                             )
                         );
                 }
+
+                PlaytestDiagnostics.RecordTraversalGate(__instance, "Sprint", __result);
             }
         }
 
@@ -505,6 +513,12 @@ namespace SilksongRandomizer.Patches
                 return
                     DirectionalAbilities.CanDash(state, __instance) ||
                     WidowSequenceSafety.CanUseEmergencySwiftStep(state);
+            }
+
+            [HarmonyPostfix]
+            private static void Postfix(HeroController __instance, bool __runOriginal)
+            {
+                PlaytestDiagnostics.RecordTraversal(__instance, "Dash", __runOriginal ? "action ran" : "action blocked");
             }
         }
 

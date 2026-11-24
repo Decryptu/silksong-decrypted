@@ -50,6 +50,11 @@ internal static class HeroControllerWallJumpPatch
             return state == null || !state.IsRandomized(ItemType.Skill) ||
                 (state.canWallJump && DirectionalAbilities.Cling(state, DirectionalAbilities.WallRight(__instance)));
         }
+
+        private static void Postfix(HeroController __instance, bool __runOriginal)
+        {
+            PlaytestDiagnostics.RecordTraversal(__instance, "Wall Jump", __runOriginal ? "action ran" : "action blocked");
+        }
     }
 
     [HarmonyPatch(typeof(HeroController), "BeginWallSlide", typeof(bool))]
@@ -114,9 +119,10 @@ internal static class HeroControllerWallJumpPatch
             Apply(__instance, ___playerData, out __state);
         }
 
-        private static void Postfix(PlayerData ___playerData, bool __state)
+        private static void Postfix(HeroController __instance, PlayerData ___playerData, bool __state, bool __result)
         {
             Restore(___playerData, __state);
+            PlaytestDiagnostics.RecordTraversalGate(__instance, "Wall Jump", __result);
         }
     }
 

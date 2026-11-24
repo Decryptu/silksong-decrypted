@@ -90,6 +90,7 @@ namespace SilksongRandomizer
                 SaveState state = SaveState.Instance;
                 if (__result && state != null && state.IsRandomized(ItemType.Skill))
                     __result = Clawline(state, InputRight(__instance, true));
+                PlaytestDiagnostics.RecordTraversalGate(__instance, "Clawline", __result);
             }
         }
 
@@ -99,35 +100,45 @@ namespace SilksongRandomizer
             private static bool Prefix(FsmState __instance)
             {
                 SaveState state = SaveState.Instance;
-                if (state == null ||
-                    !state.IsRandomized(ItemType.Skill)) return true;
+                if (state == null) return true;
+                bool skillsRandomized = state.IsRandomized(ItemType.Skill);
                 HeroController hero = HeroController.instance;
                 if (hero == null) return true;
                 Fsm fsm = __instance.Fsm;
                 string name = __instance.Name;
-                if (state.directionalClawline && ReferenceEquals(fsm, hero.harpoonDashFSM?.Fsm))
+                if (ReferenceEquals(fsm, hero.harpoonDashFSM?.Fsm))
                 {
-                    if (name == "Harpoon Ring Cancel" && !Clawline(state, InputRight(hero)))
+                    bool directional = skillsRandomized && state.directionalClawline;
+                    if (directional && name == "Harpoon Ring Cancel" && !Clawline(state, InputRight(hero)))
                     {
+                        PlaytestDiagnostics.RecordTraversal(hero, "Clawline", "ring cancel blocked by direction");
                         fsm.SetState("Ring Grabbing");
                         return false;
                     }
-                    if ((name == "Left" || name == "Right" || name == "Ring Check L" || name == "Ring Check R") &&
-                        !Clawline(state, name == "Right" || name == "Ring Check R"))
+                    if (name == "Left" || name == "Right" || name == "Ring Check L" || name == "Ring Check R")
                     {
-                        fsm.Variables.FindFsmBool("Queued Move").Value = false;
-                        hero.RegainControl();
-                        fsm.SetState("Cancel All");
-                        return false;
+                        if (directional && !Clawline(state, name == "Right" || name == "Ring Check R"))
+                        {
+                            PlaytestDiagnostics.RecordTraversal(hero, "Clawline", "direction blocked: " + name);
+                            fsm.Variables.FindFsmBool("Queued Move").Value = false;
+                            hero.RegainControl();
+                            fsm.SetState("Cancel All");
+                            return false;
+                        }
+                        PlaytestDiagnostics.RecordTraversal(hero, "Clawline", "move state: " + name);
                     }
                 }
                 if (ReferenceEquals(fsm, hero.sprintFSM?.Fsm) &&
-                    (name == "Ground Sprint L" || name == "Ground Sprint R" || name == "Air Sprint L" || name == "Air Sprint R") &&
-                    (!state.canSprint || !Sprint(state, name.EndsWith(" R"))) &&
-                    !WidowSequenceSafety.CanUseEmergencySwiftStep(state))
+                    (name == "Ground Sprint L" || name == "Ground Sprint R" || name == "Air Sprint L" || name == "Air Sprint R"))
                 {
-                    fsm.SetState("Regain Control Normal");
-                    return false;
+                    if (skillsRandomized && (!state.canSprint || !Sprint(state, name.EndsWith(" R"))) &&
+                        !WidowSequenceSafety.CanUseEmergencySwiftStep(state))
+                    {
+                        PlaytestDiagnostics.RecordTraversal(hero, "Sprint", "move state blocked: " + name);
+                        fsm.SetState("Regain Control Normal");
+                        return false;
+                    }
+                    PlaytestDiagnostics.RecordTraversal(hero, "Sprint", "move state: " + name);
                 }
                 return true;
             }
