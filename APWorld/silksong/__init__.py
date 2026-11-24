@@ -1923,8 +1923,22 @@ class SilksongWorld(CachedRuleBuilderWorld):
 
     def fill_hook(self, progitempool, usefulitempool, filleritempool, fill_locations):
         indices = [index for index, item in enumerate(progitempool) if item.player == self.player]
-        ordered = sorted((progitempool[index] for index in indices),
-                         key=lambda item: item.name in FLEA_ITEM_NAMES)
+        player_items = [progitempool[index] for index in indices]
+        ledge_grab = {"Ledge Grab", "Ledge Grab (Left)", "Ledge Grab (Right)"}
+        cling_grip = {"Cling Grip", "Cling Grip (Left)", "Cling Grip (Right)"}
+        names = {item.name for item in player_items}
+        delay_cling_grip = bool(names & ledge_grab and names & cling_grip)
+
+        def placement_order(item):
+            # Restrictive fill works backwards. Test Cling Grip placements with
+            # Ledge Grab still available in the assumed inventory.
+            return (
+                item.name in FLEA_ITEM_NAMES,
+                delay_cling_grip and item.name in cling_grip,
+                delay_cling_grip and item.name not in ledge_grab,
+            )
+
+        ordered = sorted(player_items, key=placement_order)
         for index, item in zip(indices, ordered):
             progitempool[index] = item
         if uses_crest_slot_locket_logic(self):

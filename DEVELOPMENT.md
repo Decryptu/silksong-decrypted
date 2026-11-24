@@ -11,7 +11,7 @@ The BepInEx plugin is in `src/SilksongRandomizer`. The Python world, logic, opti
 ```powershell
 $env:SILKSONG_GAME_DIR = 'C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight Silksong'
 dotnet build src/SilksongRandomizer/SilksongRandomizer.csproj --configuration Release
-python tools/package_release.py --version 0.5.5-rc.5 --output-dir dist/release-0.5.5-rc.5
+python tools/package_release.py --version 0.5.5-rc.6 --output-dir dist/release-0.5.5-rc.6
 python tools/export_yaml_schema.py --check
 node --test tools/test_yaml_generator.mjs
 python -m http.server 8000 --directory site
@@ -68,6 +68,8 @@ On Archipelago 0.6.8, solo seed `12345` generated an Act 1 playthrough reaching 
 - Boss, enemy, and NPC Souls together. The room exported 13 boss, 72 enemy, and 47 NPC soul entries.
 - Skills set to `anywhere`, with ledge grab and swimming randomized, split dash and sprint, and directional variants for Swift Step, Cling Grip, Clawline, and ledge grab.
 - The soul and traversal configurations together with coupled interior entrances.
+
+When Ledge Grab and Cling Grip are both in the progression pool, restrictive fill favors finding Ledge Grab first. This applies to directional variants too. Actual placement order depends on the seed's reachable checks and item restrictions, and the generated playthrough must still reach the selected goal.
 
 The soul, traversal, and combined tests used `anywhere` for both `rosary_cache_randomization` and `shell_shard_cache_randomization`. With default cache settings, generation rejected the boss and NPC soul pool and the directional traversal pool because each required more filler slots than were available. The traversal error now points to cache or resource checks as a way to add filler.
 
